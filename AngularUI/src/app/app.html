@@ -1,0 +1,91 @@
+<div class="app-layout">
+  <!-- MMT Top Navigation Bar -->
+  <app-navbar
+    (openAuth)="isAuthOpen.set(true)"
+    (openCart)="isCartOpen.set(true)"
+    (openPostProperty)="isSellerPortalOpen.set(true)"
+    (openSellerDashboard)="isSellerPortalOpen.set(true)"
+    (openAdminPanel)="isAdminPanelOpen.set(true)"
+    (homeClick)="onHomeReset()"
+  />
+
+  <main class="app-main">
+    <!-- MMT Hero Section & Super Search Widget -->
+    <app-hero-search
+      [cities]="cities()"
+      (searchTriggered)="onSearchTriggered($event)"
+    />
+
+    <!-- Main Property Feed & Sticky Filters -->
+    <app-property-list
+      [properties]="properties()"
+      [cities]="cities()"
+      [isBuyer]="isBuyer()"
+      [cartPropertyIds]="cartPropertyIds()"
+      [isLoading]="isLoadingProperties()"
+      (filterChange)="onFilterChanged($event)"
+      (openContact)="openOwnerContact($event)"
+      (toggleCart)="onToggleCart($event)"
+    />
+  </main>
+
+  <!-- MMT Branded Footer -->
+  <footer class="mmt-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">🏠 EasyHousing Solutions</span>
+        <p class="footer-tagline">Making property buying, selling, and renting seamless across India.</p>
+      </div>
+      <div class="footer-meta">
+        <div class="tech-pills">
+          <span class="pill">.NET 8 Microservices</span>
+          <span class="pill">Ocelot Gateway :5000</span>
+          <span class="pill">Clean Architecture</span>
+          <span class="pill">Angular 18 Standalone</span>
+          <span class="pill">MakeMyTrip Theme</span>
+        </div>
+        <p class="copyright">© 2026 Easy Housing Solutions (EHS). All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODALS -->
+  <app-auth-modal
+    [isOpen]="isAuthOpen()"
+    [states]="states()"
+    [cities]="cities()"
+    (close)="isAuthOpen.set(false)"
+    (authSuccess)="onAuthSuccess($event)"
+  />
+
+  <app-cart-modal
+    [isOpen]="isCartOpen()"
+    [items]="cartService.cartItems()"
+    (close)="isCartOpen.set(false)"
+    (removeItem)="onRemoveCartItem($event)"
+    (contactOwner)="openOwnerContact($event)"
+  />
+
+  <app-contact-modal
+    [isOpen]="isContactOpen()"
+    [contact]="selectedContact()"
+    [loading]="isLoadingContact()"
+    (close)="isContactOpen.set(false)"
+  />
+
+  <app-seller-portal
+    [isOpen]="isSellerPortalOpen()"
+    [sellerId]="authService.currentUser()?.profileId || 0"
+    [states]="states()"
+    [cities]="cities()"
+    (close)="isSellerPortalOpen.set(false)"
+    (propertyCreated)="loadProperties()"
+  />
+
+  <app-admin-panel
+    [isOpen]="isAdminPanelOpen()"
+    [cities]="cities()"
+    (close)="isAdminPanelOpen.set(false)"
+    (propertyStatusChanged)="loadProperties()"
+  />
+</div>

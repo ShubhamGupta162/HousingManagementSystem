@@ -1,0 +1,127 @@
+/* MakeMyTrip (MMT) Theme Global Styles */
+
+:root {
+  --mmt-navy-dark: #05203c;
+  --mmt-navy-mid: #0a2e5c;
+  --mmt-header-grad: linear-gradient(180deg, #05203c 0%, #0a2e5c 100%);
+  --mmt-blue-btn: linear-gradient(93deg, #53b2fe, #065af3);
+  --mmt-blue-solid: #008cff;
+  --mmt-verified-green: #108a00;
+  --mmt-red-accent: #e41d36;
+  --mmt-bg-light: #f2f2f2;
+  --mmt-card-bg: #ffffff;
+  --mmt-text-dark: #1a1a1a;
+  --mmt-text-muted: #555555;
+  --mmt-border: #e6e6e6;
+  --mmt-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--mmt-bg-light);
+  color: var(--mmt-text-dark);
+  min-height: 100vh;
+}
+
+/* Common utility classes */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* MMT Badges */
+.badge-verified {
+  background-color: #e8f5e9;
+  color: var(--mmt-verified-green);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-deactivated {
+  background-color: #ffebee;
+  color: var(--mmt-red-accent);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* MMT Action Buttons */
+.btn-mmt-primary {
+  background: var(--mmt-blue-btn);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(6, 90, 243, 0.3);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-mmt-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 90, 243, 0.4);
+}
+
+.btn-mmt-outline {
+  border: 1px solid var(--mmt-blue-solid);
+  color: var(--mmt-blue-solid);
+  background: #fff;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.btn-mmt-outline:hover {
+  background: #f0f7ff;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 520px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
