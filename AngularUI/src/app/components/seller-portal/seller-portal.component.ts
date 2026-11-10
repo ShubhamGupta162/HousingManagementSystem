@@ -403,7 +403,6 @@ import { State, City, Property } from '../../models/models';
     }
     .form-control:focus {
       border-color: #008cff;
-      box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.12);
     }
     .image-uploader-section {
       background: #f8fafc;

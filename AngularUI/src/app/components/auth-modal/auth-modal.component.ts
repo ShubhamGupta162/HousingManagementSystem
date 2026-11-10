@@ -381,7 +381,6 @@ import { State, City, UserSession } from '../../models/models';
     }
     .form-control:focus {
       border-color: #008cff;
-      box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.15);
     }
     .btn-submit-mmt {
       background: linear-gradient(90deg, #008cff 0%, #0056b3 100%);

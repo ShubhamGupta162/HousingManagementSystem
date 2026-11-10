@@ -160,7 +160,7 @@ import { City } from '../../models/models';
     .tab-btn.active {
       background: #e6f3ff;
       color: #008cff;
-      box-shadow: 0 2px 6px rgba(0, 140, 255, 0.2);
+      border: 1px solid #b9ddff;
     }
     .tab-icon {
       font-size: 16px;
@@ -186,7 +186,6 @@ import { City } from '../../models/models';
     .field-box:focus-within {
       border-color: #008cff;
       background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(0, 140, 255, 0.12);
     }
     .field-label {
       display: block;
@@ -243,12 +242,12 @@ import { City } from '../../models/models';
       letter-spacing: 0.5px;
       border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 140, 255, 0.35);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .btn-search-mmt:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0, 140, 255, 0.45);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
   `]
 })
