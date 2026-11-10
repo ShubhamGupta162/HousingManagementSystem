@@ -1,0 +1,6 @@
+@EasyHousingSolution.CartService.API_HostAddress = http://localhost:5207
+
+GET {{EasyHousingSolution.CartService.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/ApiGateway/">
+    <Project Path="ApiGateway/EasyHousingSolution.ApiGateway/EasyHousingSolution.ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/CartService/">
+    <Project Path="CartService/EasyHousingSolution.CartService.API/EasyHousingSolution.CartService.API.csproj" />
+    <Project Path="CartService/EasyHousingSolution.CartService.Application/EasyHousingSolution.CartService.Application.csproj" />
+    <Project Path="CartService/EasyHousingSolution.CartService.Domain/EasyHousingSolution.CartService.Domain.csproj" />
+    <Project Path="CartService/EasyHousingSolution.CartService.Infrastructure/EasyHousingSolution.CartService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/IdentityService/">
+    <Project Path="IdentityService/EasyHousingSolution.IdentityService.API/EasyHousingSolution.IdentityService.API.csproj" />
+    <Project Path="IdentityService/EasyHousingSolution.IdentityService.Application/EasyHousingSolution.IdentityService.Application.csproj" />
+    <Project Path="IdentityService/EasyHousingSolution.IdentityService.Domain/EasyHousingSolution.IdentityService.Domain.csproj" />
+    <Project Path="IdentityService/EasyHousingSolution.IdentityService.Infrastructure/EasyHousingSolution.IdentityService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/PropertyService/">
+    <Project Path="PropertyService/EasyHousingSolution.PropertyService.API/EasyHousingSolution.PropertyService.API.csproj" />
+    <Project Path="PropertyService/EasyHousingSolution.PropertyService.Application/EasyHousingSolution.PropertyService.Application.csproj" />
+    <Project Path="PropertyService/EasyHousingSolution.PropertyService.Domain/EasyHousingSolution.PropertyService.Domain.csproj" />
+    <Project Path="PropertyService/EasyHousingSolution.PropertyService.Infrastructure/EasyHousingSolution.PropertyService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/EasyHousingSolution.Shared/EasyHousingSolution.Shared.csproj" />
+  </Folder>
+</Solution>
