@@ -13,6 +13,8 @@ import { CartModalComponent } from './components/cart-modal/cart-modal.component
 import { ContactModalComponent } from './components/contact-modal/contact-modal.component';
 import { SellerPortalComponent } from './components/seller-portal/seller-portal.component';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
+import { PropertyDetailModalComponent } from './components/property-detail-modal/property-detail-modal.component';
+import { ToastComponent } from './components/toast/toast.component';
 
 @Component({
   selector: 'app-root',
@@ -26,7 +28,9 @@ import { AdminPanelComponent } from './components/admin-panel/admin-panel.compon
     CartModalComponent,
     ContactModalComponent,
     SellerPortalComponent,
-    AdminPanelComponent
+    AdminPanelComponent,
+    PropertyDetailModalComponent,
+    ToastComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
@@ -44,10 +48,19 @@ export class App implements OnInit {
   readonly isSellerPortalOpen = signal<boolean>(false);
   readonly isAdminPanelOpen = signal<boolean>(false);
   readonly isContactOpen = signal<boolean>(false);
+  readonly isDetailOpen = signal<boolean>(false);
+
+  // Detail Modal Selection
+  readonly selectedDetailProperty = signal<Property | null>(null);
 
   // Active Seller Contact
   readonly selectedContact = signal<SellerContact | null>(null);
   readonly isLoadingContact = signal<boolean>(false);
+
+  // Toast Notification Signals
+  readonly toastMessage = signal<string | null>(null);
+  readonly toastType = signal<'success' | 'error' | 'info'>('success');
+  private toastTimer: any = null;
 
   // Filter State
   currentFilter: { cityId?: number; propertyType?: string; propertyOption?: string; sortBy?: string } = {
@@ -134,6 +147,12 @@ export class App implements OnInit {
 
   onAuthSuccess(session: UserSession): void {
     this.refreshUserCart();
+    this.showToast(`Welcome, ${session.fullName}! (${session.userType})`, 'success');
+  }
+
+  openPropertyDetails(property: Property): void {
+    this.selectedDetailProperty.set(property);
+    this.isDetailOpen.set(true);
   }
 
   openOwnerContact(sellerId: number): void {
@@ -158,24 +177,45 @@ export class App implements OnInit {
     const user = this.authService.currentUser();
     if (!user) {
       this.isAuthOpen.set(true);
+      this.showToast('Please login to bookmark properties', 'info');
       return;
     }
     if (user.userType !== 'Buyer' || !user.profileId) {
+      this.showToast('Only registered Buyers can add properties to cart', 'info');
       return;
     }
 
+    const prop = this.properties().find(p => p.propertyId === propertyId);
     const existing = this.cartService.cartItems().find(i => i.propertyId === propertyId);
     if (existing) {
-      this.cartService.removeFromCart(existing.cartId, user.profileId).subscribe();
+      this.cartService.removeFromCart(existing.cartId, user.profileId).subscribe(() => {
+        this.showToast('Property removed from your cart', 'info');
+      });
     } else {
-      this.cartService.addToCart(user.profileId, propertyId).subscribe();
+      this.cartService.addToCart(user.profileId, propertyId, prop).subscribe(() => {
+        this.showToast('✓ Added property to your cart!', 'success');
+      });
     }
   }
 
   onRemoveCartItem(cartId: number): void {
     const user = this.authService.currentUser();
     if (user && user.profileId) {
-      this.cartService.removeFromCart(cartId, user.profileId).subscribe();
+      this.cartService.removeFromCart(cartId, user.profileId).subscribe(() => {
+        this.showToast('Property removed from cart', 'info');
+      });
     }
+  }
+
+  showToast(msg: string, type: 'success' | 'error' | 'info' = 'success'): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+    this.toastMessage.set(msg);
+    this.toastType.set(type);
+
+    this.toastTimer = setTimeout(() => {
+      this.toastMessage.set(null);
+    }, 3500);
   }
 }

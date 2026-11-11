@@ -108,6 +108,7 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
                   [isInCart]="isCartItem(prop.propertyId)"
                   (getContact)="openContact.emit($event)"
                   (toggleCart)="toggleCart.emit($event)"
+                  (viewDetails)="viewDetails.emit($event)"
                 />
               }
             </div>
@@ -334,6 +335,7 @@ export class PropertyListComponent {
   readonly filterChange = output<{ cityId?: number; propertyType?: string; sortBy?: string }>();
   readonly openContact = output<number>();
   readonly toggleCart = output<number>();
+  readonly viewDetails = output<Property>();
 
   selectedCityId: number | null = null;
   selectedType: string = '';

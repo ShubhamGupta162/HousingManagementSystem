@@ -26,6 +26,7 @@
       (filterChange)="onFilterChanged($event)"
       (openContact)="openOwnerContact($event)"
       (toggleCart)="onToggleCart($event)"
+      (viewDetails)="openPropertyDetails($event)"
     />
   </main>
 
@@ -66,6 +67,16 @@
     (close)="isContactOpen.set(false)"
   />
 
+  <app-property-detail-modal
+    [isOpen]="isDetailOpen()"
+    [property]="selectedDetailProperty()"
+    [isBuyer]="isBuyer()"
+    [isInCart]="selectedDetailProperty() ? cartPropertyIds().includes(selectedDetailProperty()!.propertyId) : false"
+    (close)="isDetailOpen.set(false)"
+    (contactOwner)="openOwnerContact($event)"
+    (toggleCart)="onToggleCart($event)"
+  />
+
   <app-seller-portal
     [isOpen]="isSellerPortalOpen()"
     [sellerId]="authService.currentUser()?.profileId || 0"
@@ -80,5 +91,11 @@
     [cities]="cities()"
     (close)="isAdminPanelOpen.set(false)"
     (propertyStatusChanged)="loadProperties()"
+  />
+
+  <!-- Floating Toast Notifications -->
+  <app-toast
+    [message]="toastMessage()"
+    [type]="toastType()"
   />
 </div>

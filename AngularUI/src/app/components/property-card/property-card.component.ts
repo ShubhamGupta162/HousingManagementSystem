@@ -8,8 +8,8 @@ import { Property } from '../../models/models';
   imports: [CommonModule],
   template: `
     <article class="mmt-prop-card">
-      <!-- Image Thumbnail Area -->
-      <div class="card-image-wrap">
+      <!-- Image Thumbnail Area (Clickable to view details) -->
+      <div class="card-image-wrap" (click)="onViewDetails()">
         <div class="image-placeholder">
           <span class="house-glyph">🏡</span>
           <span class="prop-type-badge">{{ property().propertyType }}</span>
@@ -22,11 +22,12 @@ import { Property } from '../../models/models';
             <span class="v-check">✓</span> Verified by EHS
           </div>
         }
+        <span class="view-overlay-hint">🔍 View Details</span>
       </div>
 
       <!-- Card Body Content -->
       <div class="card-content">
-        <div class="card-top-row">
+        <div class="card-top-row" (click)="onViewDetails()" style="cursor: pointer;">
           <h3 class="prop-name">{{ property().propertyName }}</h3>
         </div>
 
@@ -100,6 +101,21 @@ import { Property } from '../../models/models';
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+    }
+    .card-image-wrap:hover .view-overlay-hint {
+      opacity: 1;
+    }
+    .view-overlay-hint {
+      position: absolute;
+      background: rgba(5, 32, 60, 0.75);
+      color: #ffffff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
     .image-placeholder {
       display: flex;
@@ -170,6 +186,10 @@ import { Property } from '../../models/models';
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: color 0.15s ease;
+    }
+    .prop-name:hover {
+      color: #008cff;
     }
     .prop-location {
       font-size: 12px;
@@ -267,6 +287,7 @@ export class PropertyCardComponent {
 
   readonly getContact = output<number>();
   readonly toggleCart = output<number>();
+  readonly viewDetails = output<Property>();
 
   onContactClick(): void {
     this.getContact.emit(this.property().sellerId);
@@ -274,5 +295,9 @@ export class PropertyCardComponent {
 
   onCartClick(): void {
     this.toggleCart.emit(this.property().propertyId);
+  }
+
+  onViewDetails(): void {
+    this.viewDetails.emit(this.property());
   }
 }
