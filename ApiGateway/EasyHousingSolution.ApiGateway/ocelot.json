@@ -25,12 +25,24 @@
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
     },
     {
-      "DownstreamPathTemplate": "/api/buyers/{everything}",
+      "DownstreamPathTemplate": "/api/users",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
           "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/api/users",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/buyers/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
         }
       ],
       "UpstreamPathTemplate": "/api/buyers/{everything}",
@@ -42,10 +54,34 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 5003
         }
       ],
       "UpstreamPathTemplate": "/api/buyers",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/cart/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/api/cart/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/cart",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/api/cart",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
     },
     {
@@ -54,7 +90,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 5004
         }
       ],
       "UpstreamPathTemplate": "/api/sellers/{everything}",
@@ -66,7 +102,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 5004
         }
       ],
       "UpstreamPathTemplate": "/api/sellers",
@@ -154,30 +190,6 @@
         }
       ],
       "UpstreamPathTemplate": "/api/cities",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/cart/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5003
-        }
-      ],
-      "UpstreamPathTemplate": "/api/cart/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/cart",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5003
-        }
-      ],
-      "UpstreamPathTemplate": "/api/cart",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
     }
   ],

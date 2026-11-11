@@ -11,8 +11,6 @@ public class IdentityDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
-    public DbSet<Buyer> Buyers => Set<Buyer>();
-    public DbSet<Seller> Sellers => Set<Seller>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,33 +23,18 @@ public class IdentityDbContext : DbContext
             entity.Property(e => e.UserName).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Password).HasMaxLength(250).IsRequired();
             entity.Property(e => e.UserType).HasMaxLength(15).IsRequired();
+            entity.Property(e => e.FullName).HasMaxLength(50);
+            entity.Property(e => e.PhoneNo).HasMaxLength(10);
 
             // Seed default Admin
             entity.HasData(new User
             {
                 UserName = "admin@easysolution.com",
                 Password = PasswordSecurity.HashPassword("Admin@123"),
-                UserType = "Admin"
+                UserType = "Admin",
+                FullName = "System Administrator",
+                PhoneNo = "9999999999"
             });
-        });
-
-        // Buyer
-        modelBuilder.Entity<Buyer>(entity =>
-        {
-            entity.HasKey(e => e.BuyerId);
-            entity.Property(e => e.EmailId).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.FullName).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.PhoneNo).HasMaxLength(10).IsRequired();
-        });
-
-        // Seller
-        modelBuilder.Entity<Seller>(entity =>
-        {
-            entity.HasKey(e => e.SellerId);
-            entity.Property(e => e.EmailId).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.FullName).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.PhoneNo).HasMaxLength(10).IsRequired();
-            entity.Property(e => e.Address).HasMaxLength(250).IsRequired();
         });
     }
 }

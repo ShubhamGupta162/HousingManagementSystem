@@ -6,6 +6,7 @@ public class RegisterBuyerDto
 {
     [Required]
     [EmailAddress]
+    [StringLength(50)]
     public string EmailId { get; set; } = string.Empty;
 
     [Required]
@@ -17,8 +18,7 @@ public class RegisterBuyerDto
     public string FullName { get; set; } = string.Empty;
 
     [Required]
-    [Phone]
-    [StringLength(10)]
+    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Phone number must be exactly 10 digits")]
     public string PhoneNo { get; set; } = string.Empty;
 }
 
@@ -26,6 +26,7 @@ public class RegisterSellerDto
 {
     [Required]
     [EmailAddress]
+    [StringLength(50)]
     public string EmailId { get; set; } = string.Empty;
 
     [Required]
@@ -37,8 +38,7 @@ public class RegisterSellerDto
     public string FullName { get; set; } = string.Empty;
 
     [Required]
-    [Phone]
-    [StringLength(10)]
+    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Phone number must be exactly 10 digits")]
     public string PhoneNo { get; set; } = string.Empty;
 
     [Required]
@@ -75,55 +75,6 @@ public class UserDto
 {
     public string UserName { get; set; } = string.Empty;
     public string UserType { get; set; } = string.Empty;
-}
-
-public class BuyerDto
-{
-    public int BuyerId { get; set; }
-
-    [Required]
-    [EmailAddress]
-    public string EmailId { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(50)]
     public string FullName { get; set; } = string.Empty;
-
-    [Required]
-    [Phone]
-    [StringLength(10)]
-    public string PhoneNo { get; set; } = string.Empty;
-}
-
-public class SellerDto
-{
-    public int SellerId { get; set; }
-
-    [Required]
-    [EmailAddress]
-    public string EmailId { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(50)]
-    public string FullName { get; set; } = string.Empty;
-
-    [Required]
-    [Phone]
-    [StringLength(10)]
-    public string PhoneNo { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(250)]
-    public string Address { get; set; } = string.Empty;
-
-    public int StateId { get; set; }
-    public int CityId { get; set; }
-}
-
-public class SellerContactDto
-{
-    public int SellerId { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string EmailId { get; set; } = string.Empty;
     public string PhoneNo { get; set; } = string.Empty;
 }

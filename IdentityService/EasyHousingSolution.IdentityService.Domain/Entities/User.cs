@@ -5,4 +5,7 @@ public class User
     public string UserName { get; set; } = string.Empty; // Same as EmailId
     public string Password { get; set; } = string.Empty; // Salted hash
     public string UserType { get; set; } = string.Empty; // Admin, Buyer, Seller
+    public string FullName { get; set; } = string.Empty;
+    public string PhoneNo { get; set; } = string.Empty;
+    public int? ProfileId { get; set; }
 }

@@ -63,16 +63,12 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 // FluentValidation registration
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterBuyerDtoValidator>();
 
-// Repositories
+// Repositories & Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
-builder.Services.AddScoped<ISellerRepository, SellerRepository>();
-
-// Services
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IBuyerService, BuyerService>();
-builder.Services.AddScoped<ISellerService, SellerService>();
+
+// HttpClient & AuthService
+builder.Services.AddHttpClient<IAuthService, AuthService>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -105,4 +101,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+// Auto-migrate or ensure database exists
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+    try { db.Database.EnsureCreated(); } catch { }
+}
+
+app.Run("http://localhost:5001");
