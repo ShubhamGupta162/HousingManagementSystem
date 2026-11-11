@@ -17,12 +17,21 @@ import { Property, City, UserSummary } from '../../models/models';
           <div class="modal-header">
             <div>
               <div class="title-with-shield">
-                <span class="shield-glyph">🛡️</span>
+                <div class="shield-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                  </svg>
+                </div>
                 <h2 class="modal-title">EHS Administration Portal</h2>
               </div>
               <p class="modal-sub">Real estate verification & platform governance</p>
             </div>
-            <button class="btn-close" (click)="close.emit()">✕</button>
+            <button class="btn-close" (click)="close.emit()" title="Close admin portal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
           <!-- Tab Bar -->
@@ -32,14 +41,20 @@ import { Property, City, UserSummary } from '../../models/models';
               [class.active]="activeTab === 'properties'"
               (click)="activeTab = 'properties'"
             >
-              🏢 Properties Management ({{ allProperties().length }})
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="tab-icon">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 2h2v2h-2V5zm0 4h2v2h-2V9zm-4-4h2v2H8V5zm0 4h2v2H8V9zm-4 8v-2h2v2H4zm4 0v-2h2v2H8zm4 0v-2h2v2h-2zm8 0h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2z"/>
+              </svg>
+              <span>Properties Management ({{ allProperties().length }})</span>
             </button>
             <button
               class="tab-btn"
               [class.active]="activeTab === 'users'"
               (click)="switchToUsers()"
             >
-              👥 All Registered Users ({{ allUsers().length }})
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="tab-icon">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+              <span>All Registered Users ({{ allUsers().length }})</span>
             </button>
           </div>
 
@@ -50,7 +65,16 @@ import { Property, City, UserSummary } from '../../models/models';
               [class.alert-success]="alertType() === 'success'"
               [class.alert-error]="alertType() === 'error'"
             >
-              {{ alertMessage() }}
+              @if (alertType() === 'success') {
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+              }
+              <span>{{ alertMessage() }}</span>
             </div>
           }
 
@@ -81,7 +105,12 @@ import { Property, City, UserSummary } from '../../models/models';
                     Verified
                   </button>
                 </div>
-                <button class="btn-refresh" (click)="loadProperties()">↻ Refresh</button>
+                <button class="btn-refresh" (click)="loadProperties()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  <span>Refresh</span>
+                </button>
               </div>
 
               <div class="table-container">
@@ -120,7 +149,18 @@ import { Property, City, UserSummary } from '../../models/models';
                             [class.active]="p.isActive"
                             [class.inactive]="!p.isActive"
                           >
-                            {{ p.isActive ? '✓ Verified' : '✕ Inactive' }}
+                            @if (p.isActive) {
+                              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                              </svg>
+                              <span>Verified</span>
+                            } @else {
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                              <span>Inactive</span>
+                            }
                           </span>
                         </td>
                         <td>
@@ -130,7 +170,10 @@ import { Property, City, UserSummary } from '../../models/models';
                                 class="btn-verify"
                                 (click)="handleVerify(p.propertyId)"
                               >
-                                ✓ Verify
+                                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Verify</span>
                               </button>
                             } @else {
                               <button
@@ -181,7 +224,12 @@ import { Property, City, UserSummary } from '../../models/models';
             <div class="admin-tab-body">
               <div class="toolbar">
                 <span class="users-subtitle">Full platform user directory</span>
-                <button class="btn-refresh" (click)="loadUsers()">↻ Refresh</button>
+                <button class="btn-refresh" (click)="loadUsers()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  <span>Refresh</span>
+                </button>
               </div>
 
               <div class="table-container">
@@ -244,8 +292,8 @@ import { Property, City, UserSummary } from '../../models/models';
       background: #ffffff;
       width: 100%;
       max-width: 980px;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       padding: 24px;
       max-height: 90vh;
       overflow-y: auto;
@@ -265,10 +313,17 @@ import { Property, City, UserSummary } from '../../models/models';
     .title-with-shield {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
-    .shield-glyph {
-      font-size: 22px;
+    .shield-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #0284c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .modal-title {
       font-size: 20px;
@@ -284,11 +339,14 @@ import { Property, City, UserSummary } from '../../models/models';
     .btn-close {
       background: none;
       border: none;
-      font-size: 18px;
       color: #94a3b8;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 6px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
     }
     .btn-close:hover {
       background: #f1f5f9;
@@ -310,10 +368,16 @@ import { Property, City, UserSummary } from '../../models/models';
       cursor: pointer;
       border-bottom: 2px solid transparent;
       margin-bottom: -2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .tab-btn.active {
       color: #008cff;
       border-bottom-color: #008cff;
+    }
+    .tab-icon {
+      color: inherit;
     }
     .toolbar {
       display: flex;
@@ -334,6 +398,7 @@ import { Property, City, UserSummary } from '../../models/models';
       font-weight: 600;
       color: #475569;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
     .filter-pill.active {
       background: #008cff;
@@ -348,6 +413,14 @@ import { Property, City, UserSummary } from '../../models/models';
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #334155;
+      transition: background-color 0.15s;
+    }
+    .btn-refresh:hover {
+      background: #f1f5f9;
     }
     .table-container {
       overflow-x: auto;
@@ -408,6 +481,9 @@ import { Property, City, UserSummary } from '../../models/models';
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .status-chip.active {
       background: #ecfdf5;
@@ -430,6 +506,13 @@ import { Property, City, UserSummary } from '../../models/models';
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background-color 0.15s;
+    }
+    .btn-verify:hover {
+      background: #059669;
     }
     .btn-deactivate {
       background: #ffffff;
@@ -440,6 +523,7 @@ import { Property, City, UserSummary } from '../../models/models';
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
+      transition: background-color 0.15s;
     }
     .btn-deactivate:hover {
       background: #fef2f2;
@@ -467,6 +551,9 @@ import { Property, City, UserSummary } from '../../models/models';
       border-radius: 8px;
       font-size: 13px;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .alert-success {
       background: #f0fdf4;
@@ -488,12 +575,12 @@ import { Property, City, UserSummary } from '../../models/models';
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 16px;
+      border-radius: 12px;
       z-index: 10;
     }
     .dialog-box {
       background: #ffffff;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 20px;
       width: 420px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);

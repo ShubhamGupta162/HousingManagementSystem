@@ -6,7 +6,7 @@
     (openPostProperty)="isSellerPortalOpen.set(true)"
     (openSellerDashboard)="isSellerPortalOpen.set(true)"
     (openAdminPanel)="isAdminPanelOpen.set(true)"
-    (homeClick)="onHomeReset()"
+    (resetHome)="onHomeReset()"
   />
 
   <main class="app-main">
@@ -45,7 +45,15 @@
   <footer class="mmt-footer">
     <div class="container footer-content">
       <div class="footer-brand">
-        <span class="footer-logo">🏠 EasyHousing Solutions</span>
+        <div class="footer-logo">
+          <div class="footer-logo-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 10.5L12 3L21 10.5V20C21 20.5523 20.5523 21 20 21H15V14H9V21H4C3.44772 21 3 20.5523 3 20V10.5Z" fill="#ffffff" />
+              <path d="M9 21V14H15V21H9Z" fill="#008cff" />
+            </svg>
+          </div>
+          <span class="footer-logo-text">easy<span class="footer-highlight">housing</span></span>
+        </div>
         <p class="footer-tagline">Making property buying, selling, and renting seamless across India.</p>
       </div>
       <div class="footer-meta">

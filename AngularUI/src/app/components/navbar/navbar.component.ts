@@ -10,18 +10,27 @@ import { CartService } from '../../services/cart.service';
   template: `
     <header class="mmt-header">
       <div class="container nav-content">
-        <div class="brand" (click)="onHomeClick()">
-          <span class="brand-icon">🏠</span>
+        <!-- Professional MMT-Style Brand Logo -->
+        <div class="brand" (click)="onHomeClick()" title="EasyHousing Solutions - Return to Home">
+          <div class="brand-logo-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 10.5L12 3L21 10.5V20C21 20.5523 20.5523 21 20 21H15V14H9V21H4C3.44772 21 3 20.5523 3 20V10.5Z" fill="#ffffff" />
+              <path d="M9 21V14H15V21H9Z" fill="#008cff" />
+            </svg>
+          </div>
           <div class="brand-text">
-            <span class="brand-title">EasyHousing</span>
-            <span class="brand-sub">Make India Home</span>
+            <span class="brand-title">easy<span class="brand-highlight">housing</span></span>
+            <span class="brand-sub">Real Estate & Homes</span>
           </div>
         </div>
 
         <nav class="nav-actions">
           @if (!authService.isLoggedIn()) {
             <button class="btn-login-mmt" (click)="openAuth.emit()">
-              <span class="user-icon">👤</span> Login / Register
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12ZM12 14C7.58172 14 2 16.2386 2 20.5V22H22V20.5C22 16.2386 16.4183 14 12 14Z" />
+              </svg>
+              <span>Login or Create Account</span>
             </button>
           } @else {
             <div class="user-pill">
@@ -34,7 +43,10 @@ import { CartService } from '../../services/cart.service';
 
             @if (authService.userRole() === 'Buyer') {
               <button class="btn-cart-mmt" (click)="openCart.emit()">
-                🛒 Cart
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6zM3 6h18M16 10a4 4 0 01-8 0" />
+                </svg>
+                <span>Saved Properties</span>
                 @if (cartService.cartCount() > 0) {
                   <span class="cart-badge">{{ cartService.cartCount() }}</span>
                 }
@@ -43,7 +55,8 @@ import { CartService } from '../../services/cart.service';
 
             @if (authService.userRole() === 'Seller') {
               <button class="btn-seller-post" (click)="openPostProperty.emit()">
-                + Post Property <span class="free-tag">FREE</span>
+                <span>+ Post Property</span>
+                <span class="free-tag">FREE</span>
               </button>
               <button class="btn-nav-link" (click)="openSellerDashboard.emit()">
                 My Listings
@@ -52,11 +65,14 @@ import { CartService } from '../../services/cart.service';
 
             @if (authService.userRole() === 'Admin') {
               <button class="btn-nav-link admin-link" (click)="openAdminPanel.emit()">
-                🛡️ Admin Panel
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+                </svg>
+                Admin Panel
               </button>
             }
 
-            <button class="btn-logout" (click)="logout()">Logout</button>
+            <button class="btn-logout" (click)="logout()">Sign Out</button>
           }
         </nav>
       </div>
@@ -64,10 +80,11 @@ import { CartService } from '../../services/cart.service';
   `,
   styles: [`
     .mmt-header {
-      background: var(--mmt-header-grad);
+      background: #05203c;
       color: #ffffff;
-      padding: 12px 0;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      padding: 14px 0;
+      border-bottom: none;
+      box-shadow: none;
     }
     .nav-content {
       display: flex;
@@ -77,25 +94,38 @@ import { CartService } from '../../services/cart.service';
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       cursor: pointer;
+      user-select: none;
     }
-    .brand-icon {
-      font-size: 26px;
+    .brand-logo-badge {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #008cff 0%, #0056b3 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .brand-title {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: 800;
       letter-spacing: -0.5px;
       color: #ffffff;
       display: block;
+      line-height: 1.1;
+    }
+    .brand-highlight {
+      color: #008cff;
     }
     .brand-sub {
-      font-size: 11px;
-      color: #9bb7d4;
+      font-size: 10px;
+      color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 1px;
+      font-weight: 600;
       display: block;
+      margin-top: 2px;
     }
     .nav-actions {
       display: flex;

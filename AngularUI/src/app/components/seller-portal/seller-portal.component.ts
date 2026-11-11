@@ -17,7 +17,12 @@ import { State, City, Property } from '../../models/models';
               <h2 class="modal-title">Seller Hub</h2>
               <p class="modal-sub">List your verified property or manage your existing listings</p>
             </div>
-            <button class="btn-close" (click)="close.emit()">✕</button>
+            <button class="btn-close" (click)="close.emit()" title="Close seller hub">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
           <!-- Tabs: Post Property vs My Listings -->
@@ -34,16 +39,29 @@ import { State, City, Property } from '../../models/models';
               [class.active]="activeTab === 'listings'"
               (click)="switchToListings()"
             >
-              📋 My Listings ({{ sellerProperties().length }})
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="tab-icon">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+              </svg>
+              <span>My Listings ({{ sellerProperties().length }})</span>
             </button>
           </div>
 
           <!-- Alert feedback -->
           @if (errorMessage()) {
-            <div class="alert alert-error">⚠️ {{ errorMessage() }}</div>
+            <div class="alert alert-error">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ errorMessage() }}</span>
+            </div>
           }
           @if (successMessage()) {
-            <div class="alert alert-success">✓ {{ successMessage() }}</div>
+            <div class="alert alert-success">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ successMessage() }}</span>
+            </div>
           }
 
           <!-- TAB 1: POST PROPERTY -->
@@ -196,8 +214,12 @@ import { State, City, Property } from '../../models/models';
                           type="button"
                           class="btn-remove-img"
                           (click)="removeImage($index)"
+                          title="Remove image"
                         >
-                          ✕
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
                         </button>
                       </div>
                     }
@@ -242,7 +264,11 @@ import { State, City, Property } from '../../models/models';
 
               @if (sellerProperties().length === 0) {
                 <div class="empty-listings">
-                  <span class="empty-icon">📂</span>
+                  <div class="empty-icon-wrap">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </div>
                   <p>No listings found in this category.</p>
                 </div>
               } @else {
@@ -257,13 +283,29 @@ import { State, City, Property } from '../../models/models';
                             [class.active]="prop.isActive"
                             [class.deactivated]="!prop.isActive"
                           >
-                            {{ prop.isActive ? '✓ Verified / Active' : '✕ Deactivated' }}
+                            @if (prop.isActive) {
+                              <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                              </svg>
+                              <span>Verified / Active</span>
+                            } @else {
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                              <span>Deactivated</span>
+                            }
                           </span>
                         </div>
                         <div class="prop-subline">
                           <span>{{ prop.propertyType }}</span> •
                           <span>{{ prop.propertyOption === 'Rent' ? 'Rent' : 'Sell' }}</span> •
-                          <span>📍 {{ prop.landmark }}</span> •
+                          <span class="landmark-wrap">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            {{ prop.landmark }}
+                          </span> •
                           <strong class="prop-price">₹{{ prop.priceRange | number:'1.0-0' }}</strong>
                         </div>
                         @if (!prop.isActive && prop.deactivationReason) {
@@ -301,8 +343,8 @@ import { State, City, Property } from '../../models/models';
       background: #ffffff;
       width: 100%;
       max-width: 780px;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       padding: 24px;
       max-height: 90vh;
       overflow-y: auto;
@@ -332,11 +374,14 @@ import { State, City, Property } from '../../models/models';
     .btn-close {
       background: none;
       border: none;
-      font-size: 18px;
       color: #94a3b8;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 6px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
     }
     .btn-close:hover {
       background: #f1f5f9;
@@ -545,8 +590,11 @@ import { State, City, Property } from '../../models/models';
     .status-tag {
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .status-tag.active {
       background: #ecfdf5;
@@ -561,6 +609,16 @@ import { State, City, Property } from '../../models/models';
     .prop-subline {
       font-size: 12px;
       color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .landmark-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #475569;
     }
     .prop-price {
       color: #05203c;
@@ -578,16 +636,17 @@ import { State, City, Property } from '../../models/models';
       padding: 40px;
       color: #64748b;
     }
-    .empty-icon {
-      font-size: 40px;
-      display: block;
-      margin-bottom: 8px;
+    .empty-icon-wrap {
+      margin-bottom: 10px;
     }
     .alert {
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 13px;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .alert-error {
       background: #fef2f2;

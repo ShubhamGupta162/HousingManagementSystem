@@ -13,9 +13,19 @@ import { SellerContact } from '../../models/models';
           <div class="modal-header">
             <div>
               <h2 class="modal-title">Verified Owner Contact</h2>
-              <span class="verified-tag">✓ Verified by EHS</span>
+              <span class="verified-tag">
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Verified by EHS
+              </span>
             </div>
-            <button class="btn-close" (click)="close.emit()">✕</button>
+            <button class="btn-close" (click)="close.emit()" title="Close contact dialog">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
           @if (loading()) {
@@ -35,7 +45,11 @@ import { SellerContact } from '../../models/models';
 
               <div class="contact-methods">
                 <a class="contact-tile" [href]="'tel:' + contact()?.phoneNo">
-                  <div class="tile-icon phone-icon">📞</div>
+                  <div class="tile-icon phone-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#0284c7">
+                      <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.053 15.053 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1.01A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+                    </svg>
+                  </div>
                   <div class="tile-info">
                     <span class="tile-label">PHONE NUMBER</span>
                     <strong class="tile-val">{{ contact()?.phoneNo }}</strong>
@@ -44,7 +58,11 @@ import { SellerContact } from '../../models/models';
                 </a>
 
                 <a class="contact-tile" [href]="'mailto:' + contact()?.emailId">
-                  <div class="tile-icon mail-icon">✉️</div>
+                  <div class="tile-icon mail-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#d97706">
+                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                  </div>
                   <div class="tile-info">
                     <span class="tile-label">EMAIL ADDRESS</span>
                     <strong class="tile-val">{{ contact()?.emailId }}</strong>
@@ -54,7 +72,11 @@ import { SellerContact } from '../../models/models';
               </div>
 
               <div class="safety-box">
-                <span class="safety-icon">💡</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink: 0; margin-top: 1px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
                 <p>Never transfer booking amount or deposit before physically verifying the property documents.</p>
               </div>
             </div>
@@ -86,8 +108,8 @@ import { SellerContact } from '../../models/models';
       background: #ffffff;
       width: 100%;
       max-width: 440px;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       padding: 24px;
       animation: modalFadeIn 0.2s ease-out;
     }
@@ -114,18 +136,24 @@ import { SellerContact } from '../../models/models';
       color: #059669;
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
       border: 1px solid #a7f3d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .btn-close {
       background: none;
       border: none;
-      font-size: 18px;
       color: #94a3b8;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 6px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
     }
     .btn-close:hover {
       background: #f1f5f9;
@@ -139,6 +167,7 @@ import { SellerContact } from '../../models/models';
       background: #f8fafc;
       border-radius: 10px;
       margin-bottom: 16px;
+      border: 1px solid #f1f5f9;
     }
     .avatar {
       width: 46px;
@@ -191,7 +220,6 @@ import { SellerContact } from '../../models/models';
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
     }
     .phone-icon {
       background: #e0f2fe;
@@ -221,11 +249,12 @@ import { SellerContact } from '../../models/models';
     }
     .safety-box {
       display: flex;
+      align-items: flex-start;
       gap: 8px;
       background: #fffbeb;
       border: 1px solid #fef3c7;
       border-radius: 8px;
-      padding: 10px;
+      padding: 10px 12px;
       font-size: 11px;
       color: #b45309;
       line-height: 1.4;

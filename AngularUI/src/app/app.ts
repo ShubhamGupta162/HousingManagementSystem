@@ -226,7 +226,7 @@ export class App implements OnInit {
       });
     } else {
       this.cartService.addToCart(user.profileId, propertyId, prop).subscribe(() => {
-        this.showToast('✓ Added property to your cart!', 'success');
+        this.showToast('Added property to your saved list', 'success');
       });
     }
   }

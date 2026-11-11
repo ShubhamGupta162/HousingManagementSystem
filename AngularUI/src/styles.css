@@ -2,9 +2,9 @@
 
 :root {
   --mmt-navy-dark: #05203c;
-  --mmt-navy-mid: #0a2e5c;
-  --mmt-header-grad: linear-gradient(180deg, #05203c 0%, #0a2e5c 100%);
-  --mmt-blue-btn: linear-gradient(93deg, #53b2fe, #065af3);
+  --mmt-navy-mid: #05203c;
+  --mmt-header-bg: #05203c;
+  --mmt-blue-btn: #008cff;
   --mmt-blue-solid: #008cff;
   --mmt-verified-green: #108a00;
   --mmt-red-accent: #e41d36;

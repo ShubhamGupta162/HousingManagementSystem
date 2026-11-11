@@ -18,7 +18,12 @@ import { State, City, UserSession } from '../../models/models';
               <h2 class="modal-title">Welcome to EasyHousing</h2>
               <p class="modal-sub">Login or create your account to continue</p>
             </div>
-            <button class="btn-close" (click)="closeModal()">✕</button>
+            <button class="btn-close" (click)="closeModal()" title="Close dialog">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
           <!-- Tabs: Login / Register Buyer / Register Seller -->
@@ -49,12 +54,18 @@ import { State, City, UserSession } from '../../models/models';
           <!-- Notification Banner -->
           @if (errorMessage()) {
             <div class="alert alert-error">
-              <span>⚠️ {{ errorMessage() }}</span>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ errorMessage() }}</span>
             </div>
           }
           @if (successMessage()) {
             <div class="alert alert-success">
-              <span>✓ {{ successMessage() }}</span>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ successMessage() }}</span>
             </div>
           }
 
@@ -318,11 +329,14 @@ import { State, City, UserSession } from '../../models/models';
     .btn-close {
       background: none;
       border: none;
-      font-size: 18px;
       color: #94a3b8;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 6px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
     }
     .btn-close:hover {
       background: #f1f5f9;
@@ -407,6 +421,9 @@ import { State, City, UserSession } from '../../models/models';
       border-radius: 8px;
       font-size: 13px;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .alert-error {
       background: #fef2f2;

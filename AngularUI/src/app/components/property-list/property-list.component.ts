@@ -101,10 +101,12 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
 
           <!-- MMT Trust Box -->
           <div class="trust-box">
-            <span class="trust-shield">🛡️</span>
+            <svg class="trust-shield-svg" width="20" height="20" viewBox="0 0 24 24" fill="#108a00">
+              <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+            </svg>
             <div>
-              <strong class="trust-title">EHS Buyer Protection</strong>
-              <p class="trust-desc">All properties verified with authentic seller contacts.</p>
+              <strong class="trust-title">Buyer Protection</strong>
+              <p class="trust-desc">100% verified listings with direct owner contact.</p>
             </div>
           </div>
         </aside>
@@ -131,12 +133,18 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
           @if (activeCity()) {
             <div class="active-scope-banner">
               <div class="scope-info">
-                <span class="scope-pin">📍</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#2563eb">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
                 <span class="scope-text">Location locked to <strong>{{ activeCity()?.cityName }}</strong></span>
                 <span class="scope-badge">{{ properties().length }} available</span>
               </div>
               <button class="btn-clear-scope" (click)="onClearLocation()" title="Remove location filter">
-                ✕ View All Cities
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>View All Cities</span>
               </button>
             </div>
           }
@@ -148,7 +156,12 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
             </div>
           } @else if (properties().length === 0) {
             <div class="empty-state">
-              <span class="empty-icon">🏘️</span>
+              <div class="empty-icon-wrap">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                  <path d="M9 22V12h6v10"/>
+                </svg>
+              </div>
               <h3>No Properties Found</h3>
               <p>We couldn't find any properties matching your current filter selection.</p>
               <button class="btn-reset-large" (click)="resetFilters()">Reset All Filters</button>
@@ -416,6 +429,9 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
       border-radius: 14px;
       cursor: pointer;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
     .btn-clear-scope:hover {
       background: #2563eb;

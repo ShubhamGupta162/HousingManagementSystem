@@ -26,7 +26,9 @@ import { City } from '../../models/models';
               (click)="setOption('Sell')"
               type="button"
             >
-              <span class="tab-icon">🏢</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+              </svg>
               <span class="tab-text">BUY PROPERTY</span>
             </button>
             <button
@@ -35,7 +37,9 @@ import { City } from '../../models/models';
               (click)="setOption('Rent')"
               type="button"
             >
-              <span class="tab-icon">🔑</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+              </svg>
               <span class="tab-text">RENT PROPERTY</span>
             </button>
           </div>
@@ -82,9 +86,24 @@ import { City } from '../../models/models';
           <!-- Bottom Action Area -->
           <div class="search-action-bar">
             <div class="quick-highlights">
-              <span class="highlight-item"><span class="check">✓</span> 100% Verified Sellers</span>
-              <span class="highlight-item"><span class="check">✓</span> Direct Owner Contact</span>
-              <span class="highlight-item"><span class="check">✓</span> Zero Hidden Charges</span>
+              <span class="highlight-item">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="#108a00">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                100% Verified Sellers
+              </span>
+              <span class="highlight-item">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="#108a00">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Direct Owner Contact
+              </span>
+              <span class="highlight-item">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="#108a00">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Zero Brokerage
+              </span>
             </div>
             <button class="btn-search-mmt" (click)="onSearch()">
               SEARCH PROPERTIES
@@ -97,8 +116,8 @@ import { City } from '../../models/models';
   styles: [`
     .mmt-hero {
       position: relative;
-      background: linear-gradient(180deg, #05203c 0%, #0a3d62 85%, #e9f0f8 100%);
-      padding: 40px 0 70px 0;
+      background: #05203c;
+      padding: 30px 0 60px 0;
       color: #ffffff;
       overflow: visible;
     }
@@ -108,29 +127,29 @@ import { City } from '../../models/models';
     }
     .hero-title-area {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
     .hero-title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: -0.5px;
-      margin: 0 0 8px 0;
+      margin: 0 0 6px 0;
       color: #ffffff;
     }
     .hero-subtitle {
-      font-size: 15px;
-      color: #b0c9e6;
+      font-size: 14px;
+      color: #94a3b8;
       margin: 0;
     }
     .mmt-search-card {
       background: #ffffff;
       color: #1a1a1a;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      padding: 22px 24px;
       max-width: 1040px;
       margin: 0 auto;
-      border: 1px solid rgba(255, 255, 255, 0.8);
+      border: 1px solid #e2e8f0;
     }
     .tab-header {
       display: flex;
@@ -233,21 +252,20 @@ import { City } from '../../models/models';
       font-weight: 800;
     }
     .btn-search-mmt {
-      background: linear-gradient(90deg, #008cff 0%, #0056b3 100%);
+      background: #008cff;
       color: #ffffff;
       border: none;
-      padding: 14px 40px;
-      font-size: 15px;
+      padding: 13px 36px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      border-radius: 30px;
+      border-radius: 24px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      transition: background-color 0.15s ease;
     }
     .btn-search-mmt:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: #0076db;
     }
   `]
 })
