@@ -117,7 +117,7 @@ import { City } from '../../models/models';
     .mmt-hero {
       position: relative;
       background: #05203c;
-      padding: 30px 0 60px 0;
+      padding: 18px 0 44px 0;
       color: #ffffff;
       overflow: visible;
     }
@@ -127,17 +127,17 @@ import { City } from '../../models/models';
     }
     .hero-title-area {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
     .hero-title {
-      font-size: 30px;
+      font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.5px;
-      margin: 0 0 6px 0;
+      margin: 0 0 4px 0;
       color: #ffffff;
     }
     .hero-subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: #94a3b8;
       margin: 0;
     }
@@ -146,7 +146,7 @@ import { City } from '../../models/models';
       color: #1a1a1a;
       border-radius: 10px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      padding: 22px 24px;
+      padding: 18px 22px;
       max-width: 1040px;
       margin: 0 auto;
       border: 1px solid #e2e8f0;

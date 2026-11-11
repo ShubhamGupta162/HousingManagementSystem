@@ -13,7 +13,7 @@ import { CartService } from '../../services/cart.service';
         <!-- Professional MMT-Style Brand Logo -->
         <div class="brand" (click)="onHomeClick()" title="EasyHousing Solutions - Return to Home">
           <div class="brand-logo-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 10.5L12 3L21 10.5V20C21 20.5523 20.5523 21 20 21H15V14H9V21H4C3.44772 21 3 20.5523 3 20V10.5Z" fill="#ffffff" />
               <path d="M9 21V14H15V21H9Z" fill="#008cff" />
             </svg>
@@ -82,7 +82,7 @@ import { CartService } from '../../services/cart.service';
     .mmt-header {
       background: #05203c;
       color: #ffffff;
-      padding: 14px 0;
+      padding: 6px 0;
       border-bottom: none;
       box-shadow: none;
     }
@@ -94,21 +94,21 @@ import { CartService } from '../../services/cart.service';
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       cursor: pointer;
       user-select: none;
     }
     .brand-logo-badge {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       background: linear-gradient(135deg, #008cff 0%, #0056b3 100%);
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .brand-title {
-      font-size: 21px;
+      font-size: 17px;
       font-weight: 800;
       letter-spacing: -0.5px;
       color: #ffffff;
@@ -119,26 +119,26 @@ import { CartService } from '../../services/cart.service';
       color: #008cff;
     }
     .brand-sub {
-      font-size: 10px;
+      font-size: 8px;
       color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       font-weight: 600;
       display: block;
-      margin-top: 2px;
+      margin-top: 1px;
     }
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
     .btn-login-mmt {
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.25);
       color: #ffffff;
-      padding: 8px 18px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 12px;
       font-weight: 600;
       display: flex;
       align-items: center;
@@ -151,29 +151,29 @@ import { CartService } from '../../services/cart.service';
     .user-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: rgba(255, 255, 255, 0.08);
-      padding: 4px 12px;
-      border-radius: 20px;
+      padding: 2px 10px;
+      border-radius: 16px;
     }
     .user-avatar {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: #008cff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 11px;
     }
     .user-name {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       display: block;
     }
     .user-role {
-      font-size: 10px;
+      font-size: 9px;
       color: #79a6d2;
       text-transform: uppercase;
       display: block;
@@ -182,32 +182,32 @@ import { CartService } from '../../services/cart.service';
       background: #ffffff;
       color: #05203c;
       font-weight: 700;
-      font-size: 13px;
-      padding: 8px 16px;
-      border-radius: 20px;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 16px;
       position: relative;
     }
     .cart-badge {
       background: #e41d36;
       color: #fff;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 10px;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 8px;
       margin-left: 4px;
     }
     .btn-seller-post {
       background: var(--mmt-blue-btn);
       color: #fff;
       font-weight: 700;
-      font-size: 13px;
-      padding: 8px 16px;
-      border-radius: 20px;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 16px;
     }
     .free-tag {
       background: #ffcc00;
       color: #000;
       font-size: 9px;
-      padding: 2px 4px;
+      padding: 1px 4px;
       border-radius: 3px;
       font-weight: 800;
       margin-left: 4px;
@@ -215,9 +215,9 @@ import { CartService } from '../../services/cart.service';
     .btn-nav-link {
       background: transparent;
       color: #ffffff;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      padding: 8px 12px;
+      padding: 5px 8px;
     }
     .admin-link {
       color: #ffcc00;
@@ -226,9 +226,9 @@ import { CartService } from '../../services/cart.service';
       background: transparent;
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: #ff9999;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 14px;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
     }
     .btn-logout:hover {
       background: rgba(255, 0, 0, 0.2);
