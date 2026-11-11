@@ -181,9 +181,11 @@ public class AuthService : IAuthService
         return users.Select(u => new UserDto
         {
             UserName = u.UserName,
+            EmailId = u.UserName,
             UserType = u.UserType,
             FullName = u.FullName,
-            PhoneNo = u.PhoneNo
+            PhoneNo = u.PhoneNo,
+            ProfileId = u.ProfileId
         });
     }
 
@@ -195,9 +197,11 @@ public class AuthService : IAuthService
         return new UserDto
         {
             UserName = user.UserName,
+            EmailId = user.UserName,
             UserType = user.UserType,
             FullName = user.FullName,
-            PhoneNo = user.PhoneNo
+            PhoneNo = user.PhoneNo,
+            ProfileId = user.ProfileId
         };
     }
 }

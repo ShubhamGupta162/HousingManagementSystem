@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { City } from '../../models/models';
@@ -253,6 +253,11 @@ import { City } from '../../models/models';
 })
 export class HeroSearchComponent {
   readonly cities = input<City[]>([]);
+  readonly activeCityId = input<number | null>(null);
+  readonly activeOption = input<string>('Sell');
+  readonly activeType = input<string>('');
+  readonly activeSort = input<string>('');
+
   readonly searchTriggered = output<{
     cityId?: number;
     propertyType?: string;
@@ -264,6 +269,18 @@ export class HeroSearchComponent {
   selectedCityId: number | null = null;
   selectedType: string = '';
   selectedSort: string = '';
+
+  constructor() {
+    effect(() => {
+      this.selectedCityId = this.activeCityId() ?? null;
+      const opt = this.activeOption();
+      if (opt === 'Sell' || opt === 'Rent') {
+        this.selectedOption.set(opt);
+      }
+      this.selectedType = this.activeType() || '';
+      this.selectedSort = this.activeSort() || '';
+    });
+  }
 
   setOption(opt: 'Sell' | 'Rent'): void {
     this.selectedOption.set(opt);

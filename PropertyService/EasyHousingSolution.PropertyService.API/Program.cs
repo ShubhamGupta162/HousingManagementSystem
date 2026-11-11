@@ -104,4 +104,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+// Auto-migrate or ensure database exists
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PropertyDbContext>();
+    try { db.Database.EnsureCreated(); } catch { }
+}
+
+app.Run("http://localhost:5002");

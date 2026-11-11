@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { PropertyService } from './services/property.service';
 import { CartService } from './services/cart.service';
-import { City, State, Property, SellerContact, UserSession } from './models/models';
+import { City, State, Property, SellerContact, UserSession, PropertyFilterCriteria } from './models/models';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { HeroSearchComponent } from './components/hero-search/hero-search.component';
@@ -40,6 +40,7 @@ export class App implements OnInit {
   readonly cities = signal<City[]>([]);
   readonly states = signal<State[]>([]);
   readonly properties = signal<Property[]>([]);
+  readonly allVerifiedProperties = signal<Property[]>([]);
   readonly isLoadingProperties = signal<boolean>(false);
 
   // Modal Signals
@@ -62,10 +63,16 @@ export class App implements OnInit {
   readonly toastType = signal<'success' | 'error' | 'info'>('success');
   private toastTimer: any = null;
 
-  // Filter State
-  currentFilter: { cityId?: number; propertyType?: string; propertyOption?: string; sortBy?: string } = {
+  // Central Reactive Filter State
+  readonly activeFilter = signal<PropertyFilterCriteria>({
     propertyOption: 'Sell'
-  };
+  });
+
+  // Active City Computed
+  readonly activeCity = computed(() => {
+    const cid = this.activeFilter().cityId;
+    return cid ? this.cities().find(c => c.cityId === Number(cid)) ?? null : null;
+  });
 
   // Computeds
   readonly isBuyer = computed(() => this.authService.userRole() === 'Buyer');
@@ -79,6 +86,7 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     this.loadLocations();
+    this.loadAllVerifiedMaster();
     this.loadProperties();
     this.refreshUserCart();
   }
@@ -101,13 +109,24 @@ export class App implements OnInit {
     });
   }
 
+  loadAllVerifiedMaster(): void {
+    this.propertyService.getVerifiedProperties().subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.allVerifiedProperties.set(res.data);
+        }
+      }
+    });
+  }
+
   loadProperties(): void {
     this.isLoadingProperties.set(true);
+    const filter = this.activeFilter();
     this.propertyService.searchProperties(
-      this.currentFilter.cityId,
-      this.currentFilter.propertyType,
-      this.currentFilter.propertyOption,
-      this.currentFilter.sortBy
+      filter.cityId ? Number(filter.cityId) : undefined,
+      filter.propertyType,
+      filter.propertyOption,
+      filter.sortBy
     ).subscribe({
       next: res => {
         this.isLoadingProperties.set(false);
@@ -130,18 +149,32 @@ export class App implements OnInit {
     }
   }
 
-  onSearchTriggered(params: { cityId?: number; propertyType?: string; propertyOption?: string; sortBy?: string }): void {
-    this.currentFilter = { ...this.currentFilter, ...params };
+  onSearchTriggered(params: PropertyFilterCriteria): void {
+    this.activeFilter.update(curr => ({
+      ...curr,
+      ...params
+    }));
     this.loadProperties();
   }
 
-  onFilterChanged(params: { cityId?: number; propertyType?: string; sortBy?: string }): void {
-    this.currentFilter = { ...this.currentFilter, ...params };
+  onFilterChanged(params: PropertyFilterCriteria): void {
+    this.activeFilter.update(curr => ({
+      ...curr,
+      ...params
+    }));
+    this.loadProperties();
+  }
+
+  onClearCity(): void {
+    this.activeFilter.update(curr => ({
+      ...curr,
+      cityId: null
+    }));
     this.loadProperties();
   }
 
   onHomeReset(): void {
-    this.currentFilter = { propertyOption: 'Sell' };
+    this.activeFilter.set({ propertyOption: 'Sell' });
     this.loadProperties();
   }
 

@@ -9,136 +9,150 @@ import { ApiResponse, Property, City, State, PropertyImage, SellerContact } from
 export class PropertyService {
   private readonly gatewayUrl = 'http://localhost:5000/api';
 
-  // Resilient fallback dataset for instant UI interaction
+  // Resilient fallback dataset aligned with backend database seed
   private readonly sampleStates: State[] = [
-    { stateId: 1, stateName: 'Karnataka' },
-    { stateId: 2, stateName: 'Maharashtra' },
+    { stateId: 1, stateName: 'Maharashtra' },
+    { stateId: 2, stateName: 'Karnataka' },
     { stateId: 3, stateName: 'Delhi NCR' },
     { stateId: 4, stateName: 'Telangana' }
   ];
 
   private readonly sampleCities: City[] = [
-    { cityId: 1, cityName: 'Bengaluru', stateId: 1 },
-    { cityId: 2, cityName: 'Mysuru', stateId: 1 },
-    { cityId: 3, cityName: 'Mumbai', stateId: 2 },
-    { cityId: 4, cityName: 'Pune', stateId: 2 },
-    { cityId: 5, cityName: 'New Delhi', stateId: 3 },
-    { cityId: 6, cityName: 'Gurgaon', stateId: 3 },
-    { cityId: 7, cityName: 'Hyderabad', stateId: 4 }
+    { cityId: 1, cityName: 'Mumbai', stateId: 1 },
+    { cityId: 2, cityName: 'Pune', stateId: 1 },
+    { cityId: 3, cityName: 'Bengaluru', stateId: 2 },
+    { cityId: 4, cityName: 'New Delhi', stateId: 3 },
+    { cityId: 5, cityName: 'Gurgaon', stateId: 3 },
+    { cityId: 6, cityName: 'Hyderabad', stateId: 4 }
   ];
 
   private sampleProperties: Property[] = [
     {
-      propertyId: 101,
-      propertyName: 'Sobha Dream Acres Luxury 3BHK',
+      propertyId: 1,
+      propertyName: 'Sobha Dream Acres 3BHK',
       propertyType: 'Apartment',
       propertyOption: 'Sell',
-      description: 'Modern luxury 3BHK flat with panoramic view, modular Italian kitchen, wooden flooring in master bedroom, and premium clubhouse access.',
+      description: 'Modern luxury 3BHK flat with panoramic view, modular Italian kitchen, and clubhouse access.',
       address: 'Tower 4, Panathur Road, Balagere',
       priceRange: 8500000,
       initialDeposit: 0,
-      landmark: 'Near Outer Ring Road Tech Park',
+      landmark: 'Outer Ring Road Tech Park',
       isActive: true,
-      sellerId: 201,
-      cityId: 1
+      sellerId: 1,
+      cityId: 3
     },
     {
-      propertyId: 102,
-      propertyName: 'Prestige Silver Oak Independent Villa',
+      propertyId: 2,
+      propertyName: 'Prestige Independent Villa',
       propertyType: 'Villa',
       propertyOption: 'Sell',
-      description: 'Gated community triplex villa with private lawn, home theater room, 2 covered car parks, solar water heating, and 24x7 security.',
+      description: 'Gated community triplex villa with private lawn, home theater room, 2 covered car parks, and solar heating.',
       address: 'Villa 18, ECC Road, Whitefield',
       priceRange: 22000000,
       initialDeposit: 0,
-      landmark: 'Near Hope Farm Junction',
+      landmark: 'Hope Farm',
       isActive: true,
-      sellerId: 202,
-      cityId: 1
-    },
-    {
-      propertyId: 103,
-      propertyName: 'Hiranandani Gardens Lakeview 2BHK',
-      propertyType: 'Apartment',
-      propertyOption: 'Rent',
-      description: 'Semi-furnished elegant 2BHK with lake view, granite countertops, split ACs installed, piped natural gas, and gymnasium membership.',
-      address: 'Castle Rock Tower, Central Avenue, Powai',
-      priceRange: 55000,
-      initialDeposit: 150000,
-      landmark: 'Opposite Powai Lake Promenade',
-      isActive: true,
-      sellerId: 203,
+      sellerId: 1,
       cityId: 3
     },
     {
-      propertyId: 104,
-      propertyName: 'DLF Cyber City Premium Office Suite',
+      propertyId: 3,
+      propertyName: 'Hiranandani Lakeview 2BHK',
+      propertyType: 'Apartment',
+      propertyOption: 'Rent',
+      description: 'Semi-furnished elegant 2BHK with lake view, granite tops, split ACs, and piped gas.',
+      address: 'Castle Rock, Central Ave',
+      priceRange: 55000,
+      initialDeposit: 150000,
+      landmark: 'Powai Lake',
+      isActive: true,
+      sellerId: 2,
+      cityId: 1
+    },
+    {
+      propertyId: 4,
+      propertyName: 'DLF Cyber City Tech Suite',
       propertyType: 'Commercial',
       propertyOption: 'Rent',
-      description: 'Grade A plug-and-play office space with 40 workstations, 2 conference rooms, high-speed fiber internet, and 100% DG power backup.',
+      description: 'Plug-and-play office with 40 workstations, 2 conference rooms, and 100% backup.',
       address: 'Building 10, DLF Phase 2',
       priceRange: 135000,
       initialDeposit: 400000,
-      landmark: 'Beside Cyber City Metro Station',
+      landmark: 'Cyber City Metro',
       isActive: true,
-      sellerId: 204,
-      cityId: 6
-    },
-    {
-      propertyId: 105,
-      propertyName: 'Lodha Park Sky Residence 4BHK',
-      propertyType: 'Apartment',
-      propertyOption: 'Sell',
-      description: 'Ultra-luxurious high-rise apartment with Arabian Sea view, Italian marble, VRV central air-conditioning, and 7-tier security.',
-      address: 'Park Tower, Pandurang Budhkar Marg, Worli',
-      priceRange: 37500000,
-      initialDeposit: 0,
-      landmark: 'Near Worli Sea Face',
-      isActive: true,
-      sellerId: 201,
-      cityId: 3
-    },
-    {
-      propertyId: 106,
-      propertyName: 'Godrej Woods Green Valley 3BHK',
-      propertyType: 'Apartment',
-      propertyOption: 'Rent',
-      description: 'Forest-themed residential apartment surrounded by over 600 trees, infinity swimming pool, squash court, and EV charging bays.',
-      address: 'Sector 43, Expressway',
-      priceRange: 38000,
-      initialDeposit: 76000,
-      landmark: 'Near Golf Course Metro Station',
-      isActive: true,
-      sellerId: 202,
+      sellerId: 1,
       cityId: 5
     },
     {
-      propertyId: 107,
+      propertyId: 5,
+      propertyName: 'Lodha Park Sky Residence 4BHK',
+      propertyType: 'Apartment',
+      propertyOption: 'Sell',
+      description: 'Ultra-luxurious high-rise with Arabian Sea view and 7-tier security.',
+      address: 'Park Tower, Worli Marg',
+      priceRange: 37500000,
+      initialDeposit: 0,
+      landmark: 'Worli Sea Face',
+      isActive: true,
+      sellerId: 2,
+      cityId: 1
+    },
+    {
+      propertyId: 6,
       propertyName: 'My Home Bhooja Elite Villa',
       propertyType: 'Villa',
       propertyOption: 'Sell',
-      description: 'Contemporary architectural masterpiece with double-height ceiling, private elevator, swimming pool, and Italian modular fixtures.',
-      address: 'Silpa Gram Craft Village Road, HITEC City',
+      description: 'Contemporary architectural villa with elevator, pool, and smart home fixtures.',
+      address: 'Silpa Gram Road',
       priceRange: 19500000,
       initialDeposit: 0,
-      landmark: 'Near Cyber Towers',
+      landmark: 'Cyber Towers',
       isActive: true,
-      sellerId: 203,
-      cityId: 7
+      sellerId: 3,
+      cityId: 6
     },
     {
-      propertyId: 108,
-      propertyName: 'Brigade Gateway Commercial Retail Bay',
-      propertyType: 'Commercial',
-      propertyOption: 'Sell',
-      description: 'High-footfall ground floor commercial retail shop inside integrated township next to Orion Mall, ideal for boutique or clinic.',
-      address: 'Dr Rajkumar Road, Rajajinagar',
-      priceRange: 14500000,
-      initialDeposit: 0,
-      landmark: 'Inside World Trade Center Complex',
+      propertyId: 7,
+      propertyName: 'Godrej Woods Green Valley 3BHK',
+      propertyType: 'Apartment',
+      propertyOption: 'Rent',
+      description: 'Forest-themed residence surrounded by 600 trees, infinity pool, and squash court.',
+      address: 'Sector 43, Expressway',
+      priceRange: 38000,
+      initialDeposit: 76000,
+      landmark: 'Golf Course Metro',
       isActive: true,
-      sellerId: 204,
-      cityId: 1
+      sellerId: 2,
+      cityId: 4
+    },
+    {
+      propertyId: 8,
+      propertyName: 'Green Meadows Residential Plot',
+      propertyType: 'Plot',
+      propertyOption: 'Sell',
+      description: 'Approved residential villa plot with clear title, borewell water, and wide roads.',
+      address: 'Plot 42, Devanahalli',
+      priceRange: 4500000,
+      initialDeposit: 0,
+      landmark: 'Near Airport Road',
+      isActive: false,
+      sellerId: 1,
+      cityId: 3
+    },
+    {
+      propertyId: 9,
+      propertyName: 'Sunrise Towers 1BHK',
+      propertyType: 'Apartment',
+      propertyOption: 'Rent',
+      description: 'Studio 1BHK close to airport and tech parks.',
+      address: 'Flat 204, Viman Nagar',
+      priceRange: 22000,
+      initialDeposit: 50000,
+      landmark: 'Near Phoenix Mall',
+      isActive: false,
+      deactivationReason: 'Incomplete property ownership documentation submitted by seller.',
+      sellerId: 2,
+      cityId: 2
     }
   ];
 
@@ -205,7 +219,7 @@ export class PropertyService {
   createProperty(payload: Partial<Property>): Observable<ApiResponse<Property>> {
     return this.http.post<ApiResponse<Property>>(`${this.gatewayUrl}/properties`, payload).pipe(
       catchError(() => {
-        const newId = 100 + this.sampleProperties.length + 1;
+        const newId = this.sampleProperties.length + 1;
         const newProp: Property = {
           propertyId: newId,
           propertyName: payload.propertyName || 'New Property',
@@ -217,8 +231,8 @@ export class PropertyService {
           initialDeposit: payload.initialDeposit || 0,
           landmark: payload.landmark || '',
           isActive: false, // Starts inactive pending verification
-          sellerId: payload.sellerId || 201,
-          cityId: payload.cityId || 1
+          sellerId: payload.sellerId || 1,
+          cityId: payload.cityId || 3
         };
         this.sampleProperties.unshift(newProp);
         return of({
@@ -337,10 +351,9 @@ export class PropertyService {
     return this.http.get<ApiResponse<SellerContact>>(`${this.gatewayUrl}/sellers/${sellerId}/contact`).pipe(
       catchError(() => {
         const mockContacts: Record<number, SellerContact> = {
-          201: { sellerId: 201, fullName: 'Rajesh Varma', emailId: 'rajesh.varma@properties.com', phoneNo: '9845012345' },
-          202: { sellerId: 202, fullName: 'Ananya Deshmukh', emailId: 'ananya.d@estates.in', phoneNo: '9820054321' },
-          203: { sellerId: 203, fullName: 'Vikram Singhania', emailId: 'vikram.s@realty.com', phoneNo: '9811198765' },
-          204: { sellerId: 204, fullName: 'Sunil Narang', emailId: 'sunil.narang@commercials.in', phoneNo: '9900011223' }
+          1: { sellerId: 1, fullName: 'Amit Patel', emailId: 'seller@demo.com', phoneNo: '9845012345' },
+          2: { sellerId: 2, fullName: 'Ananya Deshmukh', emailId: 'ananya.d@estates.in', phoneNo: '9820054321' },
+          3: { sellerId: 3, fullName: 'Vikram Singhania', emailId: 'vikram.s@realty.com', phoneNo: '9811198765' }
         };
         const contact = mockContacts[sellerId] || {
           sellerId,

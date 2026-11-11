@@ -197,11 +197,11 @@ import { Property, City, UserSummary } from '../../models/models';
                     </tr>
                   </thead>
                   <tbody>
-                    @for (u of allUsers(); track u.userId) {
+                    @for (u of allUsers(); track (u.emailId || u.userName || $index)) {
                       <tr>
-                        <td>#{{ u.userId }}</td>
+                        <td>#{{ u.profileId || u.userId || ($index + 1) }}</td>
                         <td><strong>{{ u.fullName }}</strong></td>
-                        <td>{{ u.emailId }}</td>
+                        <td>{{ u.emailId || u.userName }}</td>
                         <td>{{ u.phoneNo }}</td>
                         <td>
                           <span

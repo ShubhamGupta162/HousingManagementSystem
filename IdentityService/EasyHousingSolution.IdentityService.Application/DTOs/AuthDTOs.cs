@@ -74,7 +74,9 @@ public class AuthResponseDto
 public class UserDto
 {
     public string UserName { get; set; } = string.Empty;
+    public string EmailId { get; set; } = string.Empty;
     public string UserType { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string PhoneNo { get; set; } = string.Empty;
+    public int? ProfileId { get; set; }
 }

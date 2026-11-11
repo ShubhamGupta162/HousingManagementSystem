@@ -145,6 +145,18 @@
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
     },
     {
+      "DownstreamPathTemplate": "/api/verifications",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/verifications",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/states/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

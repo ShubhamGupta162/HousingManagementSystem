@@ -25,20 +25,36 @@ export class AuthService {
         }
       }),
       catchError(() => {
-        // Resilient fallback for UI testing when offline
+        // Resilient fallback for UI testing when offline (aligned with backend seeds)
         const email = credentials.emailId.toLowerCase().trim();
         let role: 'Admin' | 'Buyer' | 'Seller' = 'Buyer';
-        let fullName = 'Buyer Demo User';
-        let profileId = 101;
+        let fullName = 'Rajesh Sharma';
+        let profileId = 1;
 
         if (email.includes('admin')) {
           role = 'Admin';
           fullName = 'System Administrator';
           profileId = 1;
-        } else if (email.includes('seller')) {
+        } else if (email.includes('seller') || email.includes('ananya') || email.includes('vikram')) {
           role = 'Seller';
-          fullName = 'Seller Demo User';
-          profileId = 201;
+          if (email.includes('ananya')) {
+            fullName = 'Ananya Deshmukh';
+            profileId = 2;
+          } else if (email.includes('vikram')) {
+            fullName = 'Vikram Singhania';
+            profileId = 3;
+          } else {
+            fullName = 'Amit Patel';
+            profileId = 1;
+          }
+        } else {
+          if (email.includes('priya')) {
+            fullName = 'Priya Nair';
+            profileId = 2;
+          } else {
+            fullName = 'Rajesh Sharma';
+            profileId = 1;
+          }
         }
 
         const session: UserSession = {

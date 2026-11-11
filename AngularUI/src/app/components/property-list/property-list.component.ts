@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Property, City } from '../../models/models';
@@ -16,6 +16,37 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
           <div class="sidebar-header">
             <h2 class="filter-title">Filters</h2>
             <button class="btn-reset" (click)="resetFilters()">Clear All</button>
+          </div>
+
+          <!-- Purpose (Buy / Rent) Filter -->
+          <div class="filter-group">
+            <label class="group-label">PURPOSE</label>
+            <div class="chips-wrap">
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="selectedOption === ''"
+                (click)="setOption('')"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="selectedOption === 'Sell'"
+                (click)="setOption('Sell')"
+              >
+                Buy (Sale)
+              </button>
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="selectedOption === 'Rent'"
+                (click)="setOption('Rent')"
+              >
+                Rent
+              </button>
+            </div>
           </div>
 
           <!-- City Filter -->
@@ -41,6 +72,9 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
                   (click)="setType(t)"
                 >
                   {{ t || 'All' }}
+                  @if (t && getTypeCount(t) !== null) {
+                    <span class="chip-count">({{ getTypeCount(t) }})</span>
+                  }
                 </button>
               }
             </div>
@@ -83,9 +117,29 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
                 Verified Properties
                 <span class="badge-count">({{ properties().length }})</span>
               </h2>
-              <p class="feed-sub">Showing active and verified real estate listings across India</p>
+              <p class="feed-sub">
+                @if (activeCity()) {
+                  Showing verified listings in <strong>{{ activeCity()?.cityName }}</strong>
+                } @else {
+                  Showing active and verified real estate listings across India
+                }
+              </p>
             </div>
           </div>
+
+          <!-- Active Location Scope Pill -->
+          @if (activeCity()) {
+            <div class="active-scope-banner">
+              <div class="scope-info">
+                <span class="scope-pin">📍</span>
+                <span class="scope-text">Location locked to <strong>{{ activeCity()?.cityName }}</strong></span>
+                <span class="scope-badge">{{ properties().length }} available</span>
+              </div>
+              <button class="btn-clear-scope" (click)="onClearLocation()" title="Remove location filter">
+                ✕ View All Cities
+              </button>
+            </div>
+          }
 
           @if (isLoading()) {
             <div class="loading-state">
@@ -323,28 +377,100 @@ import { PropertyCardComponent } from '../property-card/property-card.component'
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    .active-scope-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .scope-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #1e40af;
+    }
+    .scope-pin {
+      font-size: 16px;
+    }
+    .scope-badge {
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .btn-clear-scope {
+      background: #ffffff;
+      border: 1px solid #93c5fd;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-clear-scope:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .chip-count {
+      font-size: 10px;
+      opacity: 0.8;
+      margin-left: 2px;
+    }
   `]
 })
 export class PropertyListComponent {
   readonly properties = input<Property[]>([]);
   readonly cities = input<City[]>([]);
+  readonly activeCityId = input<number | null>(null);
+  readonly activeOption = input<string>('');
+  readonly activeType = input<string>('');
+  readonly activeSort = input<string>('');
+  readonly activeCity = input<City | null>(null);
+  readonly allVerifiedProperties = input<Property[]>([]);
   readonly isBuyer = input<boolean>(false);
   readonly cartPropertyIds = input<number[]>([]);
   readonly isLoading = input<boolean>(false);
 
-  readonly filterChange = output<{ cityId?: number; propertyType?: string; sortBy?: string }>();
+  readonly filterChange = output<{ cityId?: number; propertyType?: string; propertyOption?: string; sortBy?: string }>();
+  readonly clearCity = output<void>();
   readonly openContact = output<number>();
   readonly toggleCart = output<number>();
   readonly viewDetails = output<Property>();
 
+  selectedOption: string = '';
   selectedCityId: number | null = null;
   selectedType: string = '';
   sortBy: string = '';
 
   propertyTypes = ['', 'Apartment', 'Villa', 'Plot', 'Commercial'];
 
+  constructor() {
+    effect(() => {
+      this.selectedCityId = this.activeCityId() ?? null;
+      this.selectedOption = this.activeOption() || '';
+      this.selectedType = this.activeType() || '';
+      this.sortBy = this.activeSort() || '';
+    });
+  }
+
   isCartItem(propertyId: number): boolean {
     return this.cartPropertyIds().includes(propertyId);
+  }
+
+  setOption(option: string): void {
+    this.selectedOption = option;
+    this.onFilterChange();
   }
 
   setType(type: string): void {
@@ -352,15 +478,35 @@ export class PropertyListComponent {
     this.onFilterChange();
   }
 
+  getTypeCount(type: string): number | null {
+    if (!type) return null;
+    let list = this.allVerifiedProperties();
+    if (this.selectedCityId) {
+      list = list.filter(p => p.cityId === Number(this.selectedCityId));
+    }
+    if (this.selectedOption) {
+      list = list.filter(p => p.propertyOption.toLowerCase() === this.selectedOption.toLowerCase());
+    }
+    return list.filter(p => p.propertyType.toLowerCase() === type.toLowerCase()).length;
+  }
+
   onFilterChange(): void {
     this.filterChange.emit({
       cityId: this.selectedCityId ? Number(this.selectedCityId) : undefined,
       propertyType: this.selectedType || undefined,
+      propertyOption: this.selectedOption || undefined,
       sortBy: this.sortBy || undefined
     });
   }
 
+  onClearLocation(): void {
+    this.selectedCityId = null;
+    this.clearCity.emit();
+    this.onFilterChange();
+  }
+
   resetFilters(): void {
+    this.selectedOption = '';
     this.selectedCityId = null;
     this.selectedType = '';
     this.sortBy = '';

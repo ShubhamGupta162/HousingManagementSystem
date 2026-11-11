@@ -53,6 +53,13 @@ export interface EnrichedCartItem {
   property?: Property;
 }
 
+export interface PropertyFilterCriteria {
+  cityId?: number | null;
+  propertyType?: string;
+  propertyOption?: string; // Sell, Rent, or empty
+  sortBy?: string;
+}
+
 export interface SellerContact {
   sellerId: number;
   fullName: string;
@@ -61,8 +68,10 @@ export interface SellerContact {
 }
 
 export interface UserSummary {
-  userId: number;
+  userId?: number;
+  profileId?: number;
   emailId: string;
+  userName?: string;
   fullName: string;
   phoneNo: string;
   userType: string;

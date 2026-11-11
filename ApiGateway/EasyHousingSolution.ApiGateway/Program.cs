@@ -38,4 +38,4 @@ app.UseCors("AllowAll");
 
 await app.UseOcelot();
 
-app.Run();
+app.Run("http://localhost:5000");

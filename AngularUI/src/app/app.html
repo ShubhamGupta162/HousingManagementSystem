@@ -13,6 +13,10 @@
     <!-- MMT Hero Section & Super Search Widget -->
     <app-hero-search
       [cities]="cities()"
+      [activeCityId]="activeFilter().cityId ?? null"
+      [activeOption]="activeFilter().propertyOption || 'Sell'"
+      [activeType]="activeFilter().propertyType || ''"
+      [activeSort]="activeFilter().sortBy || ''"
       (searchTriggered)="onSearchTriggered($event)"
     />
 
@@ -20,10 +24,17 @@
     <app-property-list
       [properties]="properties()"
       [cities]="cities()"
+      [activeCityId]="activeFilter().cityId ?? null"
+      [activeOption]="activeFilter().propertyOption || ''"
+      [activeType]="activeFilter().propertyType || ''"
+      [activeSort]="activeFilter().sortBy || ''"
+      [activeCity]="activeCity()"
+      [allVerifiedProperties]="allVerifiedProperties()"
       [isBuyer]="isBuyer()"
       [cartPropertyIds]="cartPropertyIds()"
       [isLoading]="isLoadingProperties()"
       (filterChange)="onFilterChanged($event)"
+      (clearCity)="onClearCity()"
       (openContact)="openOwnerContact($event)"
       (toggleCart)="onToggleCart($event)"
       (viewDetails)="openPropertyDetails($event)"

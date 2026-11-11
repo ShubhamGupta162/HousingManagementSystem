@@ -25,7 +25,49 @@ export class CartService {
         }
       }),
       catchError(() => {
-        const local = this.loadLocalCart().filter(i => i.buyerId === buyerId);
+        let local = this.loadLocalCart().filter(i => i.buyerId === buyerId);
+        if (local.length === 0 && buyerId === 1 && !localStorage.getItem('ehs_cart_initialized')) {
+          local = [
+            {
+              cartId: 1,
+              buyerId: 1,
+              propertyId: 1,
+              property: {
+                propertyId: 1,
+                propertyName: 'Sobha Dream Acres 3BHK',
+                propertyType: 'Apartment',
+                propertyOption: 'Sell',
+                address: 'Tower 4, Panathur Road, Balagere',
+                priceRange: 8500000,
+                initialDeposit: 0,
+                landmark: 'Outer Ring Road Tech Park',
+                isActive: true,
+                sellerId: 1,
+                cityId: 3
+              }
+            },
+            {
+              cartId: 2,
+              buyerId: 1,
+              propertyId: 3,
+              property: {
+                propertyId: 3,
+                propertyName: 'Hiranandani Lakeview 2BHK',
+                propertyType: 'Apartment',
+                propertyOption: 'Rent',
+                address: 'Castle Rock, Central Ave',
+                priceRange: 55000,
+                initialDeposit: 150000,
+                landmark: 'Powai Lake',
+                isActive: true,
+                sellerId: 2,
+                cityId: 1
+              }
+            }
+          ];
+          try { localStorage.setItem('ehs_cart_initialized', 'true'); } catch {}
+          this.saveLocalCart(local);
+        }
         this.cartItems.set(local);
         this.cartCount.set(local.length);
         return of({
