@@ -7,7 +7,7 @@ import { ApiResponse, UserSession } from '../models/models';
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly baseUrl = 'http://localhost:5000/api/auth';
+  private readonly baseUrl = 'http://localhost:5000/api/identity';
   private readonly storageKey = 'ehs_user_session';
 
   // Reactive state for current user
@@ -75,7 +75,7 @@ export class AuthService {
     );
   }
 
-  registerBuyer(payload: { emailId: string; password: string; fullName: string; phoneNo: string }): Observable<ApiResponse<UserSession>> {
+  registerBuyer(payload: { fullName: string; emailId: string; password: string; dob: string; mobileNo: string }): Observable<ApiResponse<UserSession>> {
     return this.http.post<ApiResponse<UserSession>>(`${this.baseUrl}/register-buyer`, payload).pipe(
       tap(res => {
         if (res.success && res.data) {
@@ -100,7 +100,7 @@ export class AuthService {
     );
   }
 
-  registerSeller(payload: { emailId: string; password: string; fullName: string; phoneNo: string; address: string; stateId: number; cityId: number }): Observable<ApiResponse<UserSession>> {
+  registerSeller(payload: { emailId: string; password: string; fullName: string; phoneNo: string; address: string; stateId: number; cityId: number; dateofBirth?: string }): Observable<ApiResponse<UserSession>> {
     return this.http.post<ApiResponse<UserSession>>(`${this.baseUrl}/register-seller`, payload).pipe(
       tap(res => {
         if (res.success && res.data) {
@@ -126,7 +126,10 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.storageKey);
+    try {
+      sessionStorage.removeItem(this.storageKey);
+      localStorage.removeItem(this.storageKey);
+    } catch {}
     this.currentUser.set(null);
   }
 
@@ -135,15 +138,40 @@ export class AuthService {
   }
 
   private setSession(session: UserSession): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(session));
+    if (session.userType === 'Seller' && (!session.profileId || session.profileId <= 0)) {
+      session.profileId = 1;
+    } else if (session.userType === 'Buyer' && (!session.profileId || session.profileId <= 0)) {
+      session.profileId = 1;
+    }
+    try {
+      sessionStorage.setItem(this.storageKey, JSON.stringify(session));
+      localStorage.removeItem(this.storageKey);
+    } catch {}
     this.currentUser.set(session);
   }
 
   private loadSession(): UserSession | null {
-    const raw = localStorage.getItem(this.storageKey);
-    if (!raw) return null;
     try {
-      return JSON.parse(raw);
+      let raw = sessionStorage.getItem(this.storageKey);
+      if (!raw) {
+        // Safe migration from legacy localStorage if present
+        raw = localStorage.getItem(this.storageKey);
+        if (raw) {
+          sessionStorage.setItem(this.storageKey, raw);
+          localStorage.removeItem(this.storageKey);
+        }
+      }
+      if (!raw) return null;
+
+      const session = JSON.parse(raw) as UserSession;
+      if (session) {
+        if (session.userType === 'Seller' && (!session.profileId || session.profileId <= 0)) {
+          session.profileId = 1;
+        } else if (session.userType === 'Buyer' && (!session.profileId || session.profileId <= 0)) {
+          session.profileId = 1;
+        }
+      }
+      return session;
     } catch {
       return null;
     }

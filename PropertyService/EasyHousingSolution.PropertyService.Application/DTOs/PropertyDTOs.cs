@@ -82,6 +82,12 @@ public class DeactivatePropertyDto
     public string Reason { get; set; } = string.Empty;
 }
 
+public class PropertyStatusUpdateDto
+{
+    public bool IsActive { get; set; }
+    public string? Reason { get; set; }
+}
+
 public class PropertyResponseDto
 {
     public int PropertyId { get; set; }
@@ -131,4 +137,20 @@ public class UploadImagesDto
 {
     [Required]
     public List<string> Images { get; set; } = new();
+}
+
+public class BuyPropertyDto
+{
+    public int? BuyerId { get; set; }
+}
+
+public class AdminSalesReportDto
+{
+    public int TotalProperties { get; set; }
+    public int TotalActiveProperties { get; set; }
+    public int TotalSoldProperties { get; set; }
+    public int TotalDeactivatedProperties { get; set; }
+    public decimal TotalSoldValue { get; set; }
+    public decimal TotalActiveValue { get; set; }
+    public List<PropertyResponseDto> SoldProperties { get; set; } = new();
 }

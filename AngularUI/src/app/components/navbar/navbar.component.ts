@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -25,13 +25,36 @@ import { CartService } from '../../services/cart.service';
         </div>
 
         <nav class="nav-actions">
+          <!-- 1. Home Tab: Visible ONLY to guest users (hidden after login) -->
           @if (!authService.isLoggedIn()) {
-            <button class="btn-login-mmt" (click)="openAuth.emit()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12ZM12 14C7.58172 14 2 16.2386 2 20.5V22H22V20.5C22 16.2386 16.4183 14 12 14Z" />
-              </svg>
-              <span>Login or Create Account</span>
+            <button
+              class="btn-nav-link"
+              [class.active-nav-link]="currentView() === 'landing'"
+              (click)="onHomeClick()"
+            >
+              Home
             </button>
+          }
+
+          <!-- 2. Marketplace Tab: Visible to all users -->
+          <button
+            class="btn-nav-link"
+            [class.active-nav-link]="currentView() === 'marketplace'"
+            (click)="viewMarketplace.emit()"
+          >
+            Marketplace
+          </button>
+
+          <!-- 3. Guest Login Button: Visible when not logged in and not on landing page -->
+          @if (!authService.isLoggedIn()) {
+            @if (currentView() !== 'landing') {
+              <button class="btn-login-mmt" (click)="openAuth.emit()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12ZM12 14C7.58172 14 2 16.2386 2 20.5V22H22V20.5C22 16.2386 16.4183 14 12 14Z" />
+                </svg>
+                <span>Login or Create Account</span>
+              </button>
+            }
           } @else {
             <div class="user-pill">
               <span class="user-avatar">{{ authService.currentUser()?.fullName?.charAt(0) ?? 'U' }}</span>
@@ -41,6 +64,7 @@ import { CartService } from '../../services/cart.service';
               </div>
             </div>
 
+            <!-- BUYER MENU -->
             @if (authService.userRole() === 'Buyer') {
               <button class="btn-cart-mmt" (click)="openCart.emit()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -51,24 +75,54 @@ import { CartService } from '../../services/cart.service';
                   <span class="cart-badge">{{ cartService.cartCount() }}</span>
                 }
               </button>
+              <button class="btn-nav-link" (click)="openPurchases.emit()">
+                My Purchases
+              </button>
             }
 
+            <!-- SELLER MENU: Visible ONLY when logged in as Seller -->
             @if (authService.userRole() === 'Seller') {
+              <button
+                class="btn-nav-link"
+                [class.active-nav-link]="currentView() === 'seller-dashboard'"
+                (click)="viewSellerDashboard.emit()"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span>Seller Dashboard</span>
+              </button>
+              <button
+                class="btn-nav-link"
+                [class.active-nav-link]="currentView() === 'marketplace'"
+                (click)="viewMarketplace.emit()"
+              >
+                Browse Marketplace
+              </button>
               <button class="btn-seller-post" (click)="openPostProperty.emit()">
                 <span>+ Post Property</span>
                 <span class="free-tag">FREE</span>
               </button>
-              <button class="btn-nav-link" (click)="openSellerDashboard.emit()">
-                My Listings
-              </button>
             }
 
+            <!-- ADMIN MENU: Visible ONLY when logged in as Admin -->
             @if (authService.userRole() === 'Admin') {
-              <button class="btn-nav-link admin-link" (click)="openAdminPanel.emit()">
+              <button
+                class="btn-nav-link admin-link"
+                [class.active-nav-link]="currentView() === 'admin-dashboard'"
+                (click)="viewAdminDashboard.emit()"
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
                 </svg>
-                Admin Panel
+                <span>Admin Dashboard</span>
+              </button>
+              <button
+                class="btn-nav-link"
+                [class.active-nav-link]="currentView() === 'marketplace'"
+                (click)="viewMarketplace.emit()"
+              >
+                Browse Marketplace
               </button>
             }
 
@@ -130,7 +184,7 @@ import { CartService } from '../../services/cart.service';
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .btn-login-mmt {
       background: rgba(255, 255, 255, 0.12);
@@ -217,7 +271,23 @@ import { CartService } from '../../services/cart.service';
       color: #ffffff;
       font-size: 12px;
       font-weight: 600;
-      padding: 5px 8px;
+      padding: 5px 10px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .btn-nav-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .btn-nav-link.active-nav-link {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffcc00;
+      font-weight: 700;
     }
     .admin-link {
       color: #ffcc00;
@@ -236,11 +306,17 @@ import { CartService } from '../../services/cart.service';
   `]
 })
 export class NavbarComponent {
+  readonly currentView = input<'landing' | 'marketplace' | 'admin-dashboard' | 'seller-dashboard'>('landing');
+
   openAuth = output<void>();
   openCart = output<void>();
+  openPurchases = output<void>();
   openPostProperty = output<void>();
   openSellerDashboard = output<void>();
   openAdminPanel = output<void>();
+  viewMarketplace = output<void>();
+  viewAdminDashboard = output<void>();
+  viewSellerDashboard = output<void>();
   resetHome = output<void>();
 
   constructor(
@@ -251,9 +327,24 @@ export class NavbarComponent {
   logout(): void {
     this.authService.logout();
     this.cartService.clearCart();
+    this.resetHome.emit();
   }
 
+  // Handles brand logo and home button clicks
   onHomeClick(): void {
-    this.resetHome.emit();
+    if (this.authService.isLoggedIn()) {
+      // If logged in, navigate to the user's role-specific dashboard
+      const role = this.authService.userRole();
+      if (role === 'Admin') {
+        this.viewAdminDashboard.emit();
+      } else if (role === 'Seller') {
+        this.viewSellerDashboard.emit();
+      } else {
+        this.viewMarketplace.emit();
+      }
+    } else {
+      // If guest (not logged in), return to landing login page
+      this.resetHome.emit();
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, input, output, signal, effect } from '@angular/core';
+import { Component, input, output, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PropertyService } from '../../services/property.service';
@@ -10,33 +10,71 @@ import { State, City, Property } from '../../models/models';
   imports: [CommonModule, FormsModule],
   template: `
     @if (isOpen()) {
-      <div class="modal-backdrop" (click)="onBackdropClick($event)">
-        <div class="modal-card">
+      <div [class.modal-backdrop]="!isDashboard()" [class.dashboard-page-wrapper]="isDashboard()" (click)="!isDashboard() && onBackdropClick($event)">
+        <div [class.modal-card]="!isDashboard()" [class.dashboard-card]="isDashboard()">
           <div class="modal-header">
             <div>
-              <h2 class="modal-title">Seller Hub</h2>
-              <p class="modal-sub">List your verified property or manage your existing listings</p>
+              <div class="dashboard-badge-row">
+                <span class="role-seller-badge">Seller Portal</span>
+              </div>
+              <h2 class="modal-title">{{ isDashboard() ? 'Seller Dashboard' : 'Seller Hub' }}</h2>
+              <p class="modal-sub">List your verified property, track buyers & manage your sales history</p>
             </div>
-            <button class="btn-close" (click)="close.emit()" title="Close seller hub">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
+            @if (isDashboard()) {
+              <button class="btn-browse-mkt" (click)="switchView.emit()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                </svg>
+                <span>Browse Marketplace</span>
+              </button>
+            } @else {
+              <button class="btn-close" (click)="close.emit()" title="Close seller hub">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            }
           </div>
+
+          <!-- Quick Seller KPI Metric Cards -->
+          @if (isDashboard()) {
+            <div class="seller-kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-title">TOTAL LISTINGS</div>
+                <div class="kpi-val">{{ sellerProperties().length }}</div>
+                <div class="kpi-sub">Portfolio size</div>
+              </div>
+              <div class="kpi-card active-kpi">
+                <div class="kpi-title">ACTIVE LISTINGS</div>
+                <div class="kpi-val">{{ activeCount() }}</div>
+                <div class="kpi-sub">Verified & live on market</div>
+              </div>
+              <div class="kpi-card sold-kpi">
+                <div class="kpi-title">PROPERTIES SOLD</div>
+                <div class="kpi-val">{{ soldCount() }}</div>
+                <div class="kpi-sub">Successfully closed deals</div>
+              </div>
+              <div class="kpi-card rev-kpi">
+                <div class="kpi-title">TOTAL SALES VALUE</div>
+                <div class="kpi-val">{{ formatPrice(soldRevenue()) }}</div>
+                <div class="kpi-sub">Gross realized revenue</div>
+              </div>
+            </div>
+          }
 
           <!-- Tabs: Post Property vs My Listings -->
           <div class="tab-bar">
             <button
               class="tab-btn"
-              [class.active]="activeTab === 'post'"
-              (click)="activeTab = 'post'"
+              [class.active]="activeTab() === 'post'"
+              (click)="activeTab.set('post')"
             >
               + Post New Property
             </button>
             <button
               class="tab-btn"
-              [class.active]="activeTab === 'listings'"
+              [class.active]="activeTab() === 'listings'"
               (click)="switchToListings()"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="tab-icon">
@@ -65,8 +103,8 @@ import { State, City, Property } from '../../models/models';
           }
 
           <!-- TAB 1: POST PROPERTY -->
-          @if (activeTab === 'post') {
-            <form (ngSubmit)="handleCreateProperty()" class="post-form">
+          @if (activeTab() === 'post') {
+            <form (ngSubmit)="handleCreateProperty()" class="post-form" novalidate>
               <div class="form-grid">
                 <div class="form-group full-width">
                   <label>Property Name / Headline *</label>
@@ -189,25 +227,30 @@ import { State, City, Property } from '../../models/models';
                 <div class="uploader-header">
                   <div>
                     <label class="section-title">Upload Images</label>
-                    <span class="sub-hint">Upload up to 6 photos ({{ imagePreviews.length }}/6 selected)</span>
+                    <span class="sub-hint">Upload up to 6 photos ({{ imagePreviews().length }}/6 selected)</span>
                   </div>
-                  @if (imagePreviews.length < 6) {
-                    <label class="btn-select-file">
+                  @if (imagePreviews().length < 6) {
+                    <input
+                      #fileInput
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      (change)="onFileSelected($event)"
+                      style="display:none;"
+                    />
+                    <button
+                      type="button"
+                      class="btn-select-file"
+                      (click)="fileInput.click()"
+                    >
                       + Add Photos
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        (change)="onFileSelected($event)"
-                        style="display:none;"
-                      />
-                    </label>
+                    </button>
                   }
                 </div>
 
-                @if (imagePreviews.length > 0) {
+                @if (imagePreviews().length > 0) {
                   <div class="image-previews-grid">
-                    @for (img of imagePreviews; track $index) {
+                    @for (img of imagePreviews(); track $index) {
                       <div class="preview-item">
                         <img [src]="img" alt="Preview" />
                         <button
@@ -227,8 +270,31 @@ import { State, City, Property } from '../../models/models';
                 }
               </div>
 
+              <!-- In-place alert feedback right above the publish action -->
+              @if (errorMessage()) {
+                <div class="alert alert-error">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+              }
+              @if (successMessage()) {
+                <div class="alert alert-success">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>{{ successMessage() }}</span>
+                </div>
+              }
+
               <div class="form-actions">
-                <button type="submit" class="btn-submit-property" [disabled]="loading()">
+                <button
+                  type="button"
+                  class="btn-submit-property"
+                  (click)="handleCreateProperty()"
+                  [disabled]="loading()"
+                >
                   {{ loading() ? 'Submitting Property...' : 'PUBLISH PROPERTY' }}
                 </button>
               </div>
@@ -236,7 +302,7 @@ import { State, City, Property } from '../../models/models';
           }
 
           <!-- TAB 2: MY LISTINGS -->
-          @if (activeTab === 'listings') {
+          @if (activeTab() === 'listings') {
             <div class="listings-hub">
               <div class="filter-pills">
                 <button
@@ -260,6 +326,13 @@ import { State, City, Property } from '../../models/models';
                 >
                   Deactivated
                 </button>
+                <button
+                  class="pill-btn"
+                  [class.active]="listingFilter === 'sold'"
+                  (click)="fetchSellerProperties('sold')"
+                >
+                  Sold Properties
+                </button>
               </div>
 
               @if (sellerProperties().length === 0) {
@@ -281,9 +354,15 @@ import { State, City, Property } from '../../models/models';
                           <span
                             class="status-tag"
                             [class.active]="prop.isActive"
-                            [class.deactivated]="!prop.isActive"
+                            [class.sold]="!prop.isActive && prop.deactivationReason?.startsWith('Sold')"
+                            [class.deactivated]="!prop.isActive && !prop.deactivationReason?.startsWith('Sold')"
                           >
-                            @if (prop.isActive) {
+                            @if (!prop.isActive && prop.deactivationReason?.startsWith('Sold')) {
+                              <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                              </svg>
+                              <span>Sold</span>
+                            } @else if (prop.isActive) {
                               <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                               </svg>
@@ -308,7 +387,11 @@ import { State, City, Property } from '../../models/models';
                           </span> •
                           <strong class="prop-price">₹{{ prop.priceRange | number:'1.0-0' }}</strong>
                         </div>
-                        @if (!prop.isActive && prop.deactivationReason) {
+                        @if (!prop.isActive && prop.deactivationReason?.startsWith('Sold')) {
+                          <div class="sold-box">
+                            <strong>Deal Status:</strong> {{ prop.deactivationReason }}
+                          </div>
+                        } @else if (!prop.isActive && prop.deactivationReason) {
                           <div class="deactivation-box">
                             <strong>Reason for deactivation:</strong> {{ prop.deactivationReason }}
                           </div>
@@ -339,6 +422,13 @@ import { State, City, Property } from '../../models/models';
       justify-content: center;
       padding: 16px;
     }
+    .dashboard-page-wrapper {
+      padding: 24px 20px 48px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
     .modal-card {
       background: #ffffff;
       width: 100%;
@@ -349,6 +439,87 @@ import { State, City, Property } from '../../models/models';
       max-height: 90vh;
       overflow-y: auto;
       animation: modalFadeIn 0.2s ease-out;
+    }
+    .dashboard-card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      padding: 28px;
+    }
+    .dashboard-badge-row {
+      margin-bottom: 4px;
+    }
+    .role-seller-badge {
+      background: #fef3c7;
+      color: #b45309;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .btn-browse-mkt {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-browse-mkt:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .seller-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .seller-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .kpi-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .kpi-card.active-kpi {
+      border-left: 4px solid #008cff;
+    }
+    .kpi-card.sold-kpi {
+      border-left: 4px solid #10b981;
+    }
+    .kpi-card.rev-kpi {
+      border-left: 4px solid #8b5cf6;
+    }
+    .kpi-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .kpi-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
     }
     @keyframes modalFadeIn {
       from { transform: scale(0.95); opacity: 0; }
@@ -474,12 +645,18 @@ import { State, City, Property } from '../../models/models';
     .btn-select-file {
       background: #e6f3ff;
       color: #008cff;
+      border: 1px solid #bae0ff;
+      outline: none;
+      font-family: inherit;
       padding: 6px 14px;
       font-size: 12px;
       font-weight: 700;
       border-radius: 6px;
       cursor: pointer;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
     }
     .btn-select-file:hover {
       background: #d4ebff;
@@ -601,6 +778,12 @@ import { State, City, Property } from '../../models/models';
       color: #059669;
       border: 1px solid #a7f3d0;
     }
+    .status-tag.sold {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #10b981;
+      font-weight: 700;
+    }
     .status-tag.deactivated {
       background: #fef2f2;
       color: #dc2626;
@@ -630,6 +813,15 @@ import { State, City, Property } from '../../models/models';
       border-radius: 6px;
       font-size: 11px;
       color: #991b1b;
+    }
+    .sold-box {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #065f46;
     }
     .empty-listings {
       text-align: center;
@@ -661,22 +853,42 @@ import { State, City, Property } from '../../models/models';
   `]
 })
 export class SellerPortalComponent {
-  readonly isOpen = input<boolean>(false);
+  readonly isOpen = input<boolean>(true);
+  readonly isDashboard = input<boolean>(false);
+  readonly initialTab = input<'post' | 'listings'>('listings');
   readonly sellerId = input<number>(0);
   readonly states = input<State[]>([]);
   readonly cities = input<City[]>([]);
 
   readonly close = output<void>();
   readonly propertyCreated = output<void>();
+  readonly switchView = output<void>();
 
-  activeTab: 'post' | 'listings' = 'post';
-  listingFilter: 'all' | 'verified' | 'deactivated' = 'all';
+  readonly activeTab = signal<'post' | 'listings'>('listings');
+  listingFilter: 'all' | 'verified' | 'deactivated' | 'sold' = 'all';
 
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
   sellerProperties = signal<Property[]>([]);
+
+  readonly activeCount = computed(() => this.sellerProperties().filter(p => p.isActive).length);
+  readonly soldCount = computed(() => this.sellerProperties().filter(p => !p.isActive && p.deactivationReason?.startsWith('Sold')).length);
+  readonly soldRevenue = computed(() => this.sellerProperties().filter(p => !p.isActive && p.deactivationReason?.startsWith('Sold')).reduce((acc, p) => acc + (p.priceRange || 0), 0));
+
+  formatPrice(price: number): string {
+    if (!price || price <= 0) return '₹0';
+    if (price >= 10000000) {
+      const cr = price / 10000000;
+      return `₹${cr.toFixed(2).replace(/\.00$/, '')} Cr`;
+    }
+    if (price >= 100000) {
+      const lk = price / 100000;
+      return `₹${lk.toFixed(1).replace(/\.0$/, '')} Lakh`;
+    }
+    return `₹${price.toLocaleString('en-IN')}`;
+  }
 
   // Post form fields
   propertyName = '';
@@ -689,13 +901,24 @@ export class SellerPortalComponent {
   landmark = '';
   address = '';
   description = '';
-  imagePreviews: string[] = [];
+  readonly imagePreviews = signal<string[]>([]);
 
   availableCities: City[] = [];
 
   constructor(private propertyService: PropertyService) {
     effect(() => {
-      if (this.isOpen() && this.sellerId() > 0) {
+      this.activeTab.set(this.initialTab());
+    });
+
+    effect(() => {
+      const allCities = this.cities();
+      if (this.selectedStateId && allCities.length > 0) {
+        this.availableCities = allCities.filter(c => c.stateId === Number(this.selectedStateId));
+      }
+    });
+
+    effect(() => {
+      if (this.isOpen()) {
         this.fetchSellerProperties(this.listingFilter);
       }
     });
@@ -710,21 +933,36 @@ export class SellerPortalComponent {
   onStateChange(): void {
     if (!this.selectedStateId) {
       this.availableCities = [];
+      this.selectedCityId = null;
     } else {
       this.availableCities = this.cities().filter(c => c.stateId === Number(this.selectedStateId));
+      if (!this.availableCities.some(c => c.cityId === Number(this.selectedCityId))) {
+        this.selectedCityId = null;
+      }
     }
   }
 
   switchToListings(): void {
-    this.activeTab = 'listings';
+    this.activeTab.set('listings');
     this.fetchSellerProperties(this.listingFilter);
   }
 
-  fetchSellerProperties(type: 'all' | 'verified' | 'deactivated'): void {
+  fetchSellerProperties(type: 'all' | 'verified' | 'deactivated' | 'sold'): void {
     this.listingFilter = type;
-    if (!this.sellerId()) return;
+    const effectiveSellerId = this.sellerId() > 0 ? this.sellerId() : 0;
 
-    this.propertyService.getSellerProperties(this.sellerId(), type).subscribe({
+    if (type === 'sold') {
+      this.propertyService.getSellerSoldProperties(effectiveSellerId).subscribe({
+        next: res => {
+          if (res.success && res.data) {
+            this.sellerProperties.set(res.data);
+          }
+        }
+      });
+      return;
+    }
+
+    this.propertyService.getSellerProperties(effectiveSellerId, type).subscribe({
       next: res => {
         if (res.success && res.data) {
           this.sellerProperties.set(res.data);
@@ -733,37 +971,52 @@ export class SellerPortalComponent {
     });
   }
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    if (!input.files) return;
+    if (!input.files || input.files.length === 0) return;
 
-    const remainingSlots = 6 - this.imagePreviews.length;
+    const currentPreviews = this.imagePreviews();
+    const remainingSlots = 6 - currentPreviews.length;
     const filesToRead = Array.from(input.files).slice(0, remainingSlots);
 
-    filesToRead.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        if (e.target?.result && this.imagePreviews.length < 6) {
-          this.imagePreviews.push(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+    const readPromises = filesToRead.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target?.result as string);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
     });
 
+    const results = await Promise.all(readPromises);
+    const valid = results.filter(r => !!r);
+    this.imagePreviews.update(prev => [...prev, ...valid].slice(0, 6));
     input.value = '';
   }
 
   removeImage(index: number): void {
-    this.imagePreviews.splice(index, 1);
+    this.imagePreviews.update(prev => prev.filter((_, i) => i !== index));
   }
 
   handleCreateProperty(): void {
+    if (!this.propertyName || !this.propertyName.trim()) {
+      this.errorMessage.set('Property name / headline is required.');
+      return;
+    }
     if (!this.selectedCityId) {
       this.errorMessage.set('Please select a City.');
       return;
     }
-    if (this.priceRange <= 0) {
+    if (!this.priceRange || this.priceRange <= 0) {
       this.errorMessage.set('Price must be greater than 0.');
+      return;
+    }
+    if (!this.address || !this.address.trim()) {
+      this.errorMessage.set('Address is required.');
+      return;
+    }
+    if (!this.landmark || !this.landmark.trim()) {
+      this.errorMessage.set('Landmark is required.');
       return;
     }
 
@@ -771,27 +1024,34 @@ export class SellerPortalComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
+    const effectiveSellerId = this.sellerId() > 0 ? this.sellerId() : 0;
+
     const payload = {
-      propertyName: this.propertyName,
+      propertyName: this.propertyName.trim(),
       propertyOption: this.propertyOption,
       propertyType: this.propertyType,
-      address: this.address,
-      landmark: this.landmark,
-      priceRange: this.priceRange,
-      initialDeposit: this.initialDeposit || 0,
-      description: this.description,
+      address: this.address.trim(),
+      landmark: this.landmark.trim(),
+      priceRange: Number(this.priceRange),
+      initialDeposit: Number(this.initialDeposit || 0),
+      description: this.description ? this.description.trim() : '',
       cityId: Number(this.selectedCityId),
-      sellerId: this.sellerId()
+      sellerId: effectiveSellerId
     };
 
+    console.log('[SellerPortal] Submitting property payload:', payload);
+
     this.propertyService.createProperty(payload).subscribe({
-      next: res => {
-        if (res.success && res.data) {
-          const newPropertyId = res.data.propertyId;
+      next: (res: any) => {
+        console.log('[SellerPortal] Create property response:', res);
+        const property = (res && res.data) ? res.data : (res && res.propertyId ? res : null);
+
+        if (property && property.propertyId) {
+          const newPropertyId = property.propertyId;
 
           // If images exist, upload them
-          if (this.imagePreviews.length > 0) {
-            this.propertyService.uploadImages(newPropertyId, this.imagePreviews).subscribe({
+          if (this.imagePreviews().length > 0) {
+            this.propertyService.uploadImages(newPropertyId, this.imagePreviews()).subscribe({
               next: () => {
                 this.completeSuccess();
               },
@@ -804,21 +1064,29 @@ export class SellerPortalComponent {
           }
         } else {
           this.loading.set(false);
-          this.errorMessage.set(res.message || 'Failed to create property.');
+          this.errorMessage.set(res?.message || 'Failed to create property.');
         }
       },
       error: err => {
+        console.error('[SellerPortal] Error submitting property:', err);
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Failed to submit property.');
+        this.errorMessage.set(err.error?.message || err.error || err.message || 'Failed to submit property.');
       }
     });
   }
 
   private completeSuccess(): void {
     this.loading.set(false);
-    this.successMessage.set('Property listed successfully! Pending admin verification.');
+    this.successMessage.set('🎉 Property listed successfully! Pending admin verification.');
+    this.errorMessage.set(null);
     this.resetForm();
     this.propertyCreated.emit();
+
+    // Auto-switch to My Listings tab so the seller immediately sees their newly posted property!
+    setTimeout(() => {
+      this.activeTab.set('listings');
+      this.fetchSellerProperties(this.listingFilter);
+    }, 1200);
   }
 
   private resetForm(): void {
@@ -830,6 +1098,6 @@ export class SellerPortalComponent {
     this.landmark = '';
     this.address = '';
     this.description = '';
-    this.imagePreviews = [];
+    this.imagePreviews.set([]);
   }
 }

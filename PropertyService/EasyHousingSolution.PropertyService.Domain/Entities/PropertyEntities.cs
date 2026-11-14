@@ -34,5 +34,6 @@ public class PropertyImage
 {
     public int ImageId { get; set; }
     public int PropertyId { get; set; }
-    public string ImageData { get; set; } = string.Empty; // Base64 payload
+    public string ImageData { get; set; } = string.Empty; // Maps to [Image] column in Images table
+    public string Image { get => ImageData; set => ImageData = value; }
 }

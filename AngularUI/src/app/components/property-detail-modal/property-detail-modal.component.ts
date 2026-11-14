@@ -109,6 +109,15 @@ import { Property } from '../../models/models';
                       Save to Cart
                     }
                   </button>
+                  <button
+                    class="btn-buy-modal"
+                    (click)="buyProperty.emit(property()!.propertyId)"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    Buy Property
+                  </button>
                 }
               </div>
             </div>
@@ -419,6 +428,23 @@ import { Property } from '../../models/models';
       border-radius: 6px;
       border: 1px solid #edf2f7;
     }
+    .btn-buy-modal {
+      background: #10b981;
+      color: #ffffff;
+      border: 1px solid #059669;
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-buy-modal:hover {
+      background: #059669;
+    }
     .trust-banner {
       display: flex;
       gap: 10px;
@@ -451,6 +477,7 @@ export class PropertyDetailModalComponent {
   readonly close = output<void>();
   readonly contactOwner = output<number>();
   readonly toggleCart = output<number>();
+  readonly buyProperty = output<number>();
 
   formatPrice(price: number): string {
     if (!price || price <= 0) return '₹0';

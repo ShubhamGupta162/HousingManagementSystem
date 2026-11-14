@@ -1,44 +1,95 @@
 <div class="app-layout">
   <!-- MMT Top Navigation Bar -->
   <app-navbar
+    [currentView]="currentView()"
     (openAuth)="isAuthOpen.set(true)"
-    (openCart)="isCartOpen.set(true)"
-    (openPostProperty)="isSellerPortalOpen.set(true)"
-    (openSellerDashboard)="isSellerPortalOpen.set(true)"
-    (openAdminPanel)="isAdminPanelOpen.set(true)"
+    (openCart)="openBuyerCart('cart')"
+    (openPurchases)="openBuyerCart('purchases')"
+    (openPostProperty)="handleOpenPostProperty()"
+    (viewSellerDashboard)="setView('seller-dashboard')"
+    (viewAdminDashboard)="setView('admin-dashboard')"
+    (viewMarketplace)="setView('marketplace')"
     (resetHome)="onHomeReset()"
   />
 
   <main class="app-main">
-    <!-- MMT Hero Section & Super Search Widget -->
-    <app-hero-search
-      [cities]="cities()"
-      [activeCityId]="activeFilter().cityId ?? null"
-      [activeOption]="activeFilter().propertyOption || 'Sell'"
-      [activeType]="activeFilter().propertyType || ''"
-      [activeSort]="activeFilter().sortBy || ''"
-      (searchTriggered)="onSearchTriggered($event)"
-    />
+    <!-- 1. ADMIN DASHBOARD: Displayed ONLY when logged in as Admin -->
+    @if (currentView() === 'admin-dashboard' && authService.userRole() === 'Admin') {
+      <app-admin-panel
+        [isOpen]="true"
+        [isDashboard]="true"
+        [cities]="cities()"
+        (propertyStatusChanged)="loadProperties()"
+        (switchView)="setView('marketplace')"
+      />
+    }
 
-    <!-- Main Property Feed & Sticky Filters -->
-    <app-property-list
-      [properties]="properties()"
-      [cities]="cities()"
-      [activeCityId]="activeFilter().cityId ?? null"
-      [activeOption]="activeFilter().propertyOption || ''"
-      [activeType]="activeFilter().propertyType || ''"
-      [activeSort]="activeFilter().sortBy || ''"
-      [activeCity]="activeCity()"
-      [allVerifiedProperties]="allVerifiedProperties()"
-      [isBuyer]="isBuyer()"
-      [cartPropertyIds]="cartPropertyIds()"
-      [isLoading]="isLoadingProperties()"
-      (filterChange)="onFilterChanged($event)"
-      (clearCity)="onClearCity()"
-      (openContact)="openOwnerContact($event)"
-      (toggleCart)="onToggleCart($event)"
-      (viewDetails)="openPropertyDetails($event)"
-    />
+    <!-- 2. SELLER DASHBOARD: Displayed ONLY when logged in as Seller -->
+    @else if (currentView() === 'seller-dashboard' && authService.userRole() === 'Seller') {
+      <app-seller-portal
+        [isOpen]="true"
+        [isDashboard]="true"
+        [initialTab]="sellerPortalTab()"
+        [sellerId]="authService.currentUser()?.profileId || 0"
+        [states]="states()"
+        [cities]="cities()"
+        (propertyCreated)="loadProperties()"
+        (switchView)="setView('marketplace')"
+      />
+    }
+
+    <!-- 3. LANDING PAGE: Focused Login & Registration Form Only -->
+    @else if (currentView() === 'landing') {
+      <app-landing-page
+        [states]="states()"
+        [cities]="cities()"
+        (authSuccess)="onAuthSuccess($event)"
+        (browseMarketplace)="setView('marketplace')"
+      />
+    }
+
+    <!-- 4. BUYER MARKETPLACE: Default public & buyer search feed -->
+    @else {
+      @if (authService.userRole() === 'Admin') {
+        <div class="role-return-banner">
+          <div class="banner-text">
+            <span>🛡️ You are currently viewing the live Marketplace as <strong>Administrator</strong>.</span>
+          </div>
+          <button class="btn-return" (click)="setView('admin-dashboard')">Return to Admin Dashboard</button>
+        </div>
+      }
+      @if (authService.userRole() === 'Seller') {
+        <div class="role-return-banner">
+          <div class="banner-text">
+            <span>👤 You are currently viewing the live Marketplace as <strong>Seller</strong>.</span>
+          </div>
+          <button class="btn-return" (click)="setView('seller-dashboard')">Return to Seller Dashboard</button>
+        </div>
+      }
+
+      <!-- MMT Hero Section & Super Search Widget -->
+      <app-hero-search
+        [cities]="cities()"
+        [activeCityId]="activeFilter().cityId ?? null"
+        [activeOption]="activeFilter().propertyOption || 'Sell'"
+        [activeType]="activeFilter().propertyType || ''"
+        (searchTriggered)="onSearchTriggered($event)"
+      />
+
+      <!-- Main Property Feed -->
+      <app-property-list
+        [properties]="properties()"
+        [activeCity]="activeCity()"
+        [isBuyer]="isBuyer()"
+        [cartPropertyIds]="cartPropertyIds()"
+        [isLoading]="isLoadingProperties()"
+        (clearCity)="onClearCity()"
+        (resetAll)="onResetFilters()"
+        (openContact)="openOwnerContact($event)"
+        (toggleCart)="onToggleCart($event)"
+        (viewDetails)="openPropertyDetails($event)"
+      />
+    }
   </main>
 
   <!-- MMT Branded Footer -->
@@ -62,7 +113,7 @@
     </div>
   </footer>
 
-  <!-- MODALS -->
+  <!-- BUYER & SHARED MODALS -->
   <app-auth-modal
     [isOpen]="isAuthOpen()"
     [states]="states()"
@@ -74,9 +125,12 @@
   <app-cart-modal
     [isOpen]="isCartOpen()"
     [items]="cartService.cartItems()"
+    [purchasedProperties]="purchasedProperties()"
+    [initialTab]="cartInitialTab()"
     (close)="isCartOpen.set(false)"
     (removeItem)="onRemoveCartItem($event)"
     (contactOwner)="openOwnerContact($event)"
+    (buyItem)="handleBuyCartItem($event)"
   />
 
   <app-contact-modal
@@ -94,22 +148,7 @@
     (close)="isDetailOpen.set(false)"
     (contactOwner)="openOwnerContact($event)"
     (toggleCart)="onToggleCart($event)"
-  />
-
-  <app-seller-portal
-    [isOpen]="isSellerPortalOpen()"
-    [sellerId]="authService.currentUser()?.profileId || 0"
-    [states]="states()"
-    [cities]="cities()"
-    (close)="isSellerPortalOpen.set(false)"
-    (propertyCreated)="loadProperties()"
-  />
-
-  <app-admin-panel
-    [isOpen]="isAdminPanelOpen()"
-    [cities]="cities()"
-    (close)="isAdminPanelOpen.set(false)"
-    (propertyStatusChanged)="loadProperties()"
+    (buyProperty)="handleBuyProperty($event)"
   />
 
   <!-- Floating Toast Notifications -->
@@ -117,4 +156,7 @@
     [message]="toastMessage()"
     [type]="toastType()"
   />
+
+  <!-- Global Common Error Modal (Capgemini Specification) -->
+  <app-common-error />
 </div>

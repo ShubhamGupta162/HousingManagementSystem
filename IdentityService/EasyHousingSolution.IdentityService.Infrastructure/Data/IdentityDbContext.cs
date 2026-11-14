@@ -16,71 +16,57 @@ public class IdentityDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // User
+        // i) Users table: UserName varchar(25) primary key, Password varchar(25) not null, UserType varchar(15)
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("Users");
             entity.HasKey(e => e.UserName);
-            entity.Property(e => e.UserName).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.Password).HasMaxLength(250).IsRequired();
-            entity.Property(e => e.UserType).HasMaxLength(15).IsRequired();
-            entity.Property(e => e.FullName).HasMaxLength(50);
-            entity.Property(e => e.PhoneNo).HasMaxLength(10);
+            entity.Property(e => e.UserName).HasColumnType("varchar(25)").HasMaxLength(25).IsRequired();
+            entity.Property(e => e.Password).HasColumnType("varchar(25)").HasMaxLength(25).IsRequired();
+            entity.Property(e => e.UserType).HasColumnType("varchar(15)").HasMaxLength(15).IsRequired();
 
-            // Seed Admin, Buyers, and Sellers for testing all roles
+            // Ignore non-database helper properties
+            entity.Ignore(e => e.FullName);
+            entity.Ignore(e => e.PhoneNo);
+            entity.Ignore(e => e.ProfileId);
+
+            // Seed Admin, Buyers, and Sellers (Password fits within varchar(25))
             entity.HasData(
                 new User
                 {
                     UserName = "admin@easysolution.com",
-                    Password = PasswordSecurity.HashPassword("AdminPassword123!"),
-                    UserType = "Admin",
-                    FullName = "System Administrator",
-                    PhoneNo = "9999999999",
-                    ProfileId = 1
+                    Password = "AdminPassword123!",
+                    UserType = "Admin"
                 },
                 new User
                 {
                     UserName = "buyer@demo.com",
-                    Password = PasswordSecurity.HashPassword("BuyerPassword123!"),
-                    UserType = "Buyer",
-                    FullName = "Rajesh Sharma",
-                    PhoneNo = "9876543210",
-                    ProfileId = 1
+                    Password = "BuyerPassword123!",
+                    UserType = "Buyer"
                 },
                 new User
                 {
                     UserName = "priya.nair@outlook.com",
-                    Password = PasswordSecurity.HashPassword("BuyerPassword123!"),
-                    UserType = "Buyer",
-                    FullName = "Priya Nair",
-                    PhoneNo = "9820067890",
-                    ProfileId = 2
+                    Password = "BuyerPassword123!",
+                    UserType = "Buyer"
                 },
                 new User
                 {
                     UserName = "seller@demo.com",
-                    Password = PasswordSecurity.HashPassword("SellerPassword123!"),
-                    UserType = "Seller",
-                    FullName = "Amit Patel",
-                    PhoneNo = "9845012345",
-                    ProfileId = 1
+                    Password = "SellerPassword123!",
+                    UserType = "Seller"
                 },
                 new User
                 {
                     UserName = "ananya.d@estates.in",
-                    Password = PasswordSecurity.HashPassword("SellerPassword123!"),
-                    UserType = "Seller",
-                    FullName = "Ananya Deshmukh",
-                    PhoneNo = "9820054321",
-                    ProfileId = 2
+                    Password = "SellerPassword123!",
+                    UserType = "Seller"
                 },
                 new User
                 {
                     UserName = "vikram.s@realty.com",
-                    Password = PasswordSecurity.HashPassword("SellerPassword123!"),
-                    UserType = "Seller",
-                    FullName = "Vikram Singhania",
-                    PhoneNo = "9811198765",
-                    ProfileId = 3
+                    Password = "SellerPassword123!",
+                    UserType = "Seller"
                 }
             );
         });

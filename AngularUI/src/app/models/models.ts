@@ -76,5 +76,6 @@ export interface UserSummary {
   phoneNo: string;
   userType: string;
   address?: string;
+  isActive?: boolean;
 }
 

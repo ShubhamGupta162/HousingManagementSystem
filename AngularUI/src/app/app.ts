@@ -1,9 +1,9 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { PropertyService } from './services/property.service';
 import { CartService } from './services/cart.service';
-import { City, State, Property, SellerContact, UserSession, PropertyFilterCriteria } from './models/models';
+import { City, State, Property, SellerContact, UserSession, PropertyFilterCriteria, EnrichedCartItem } from './models/models';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { HeroSearchComponent } from './components/hero-search/hero-search.component';
@@ -14,7 +14,9 @@ import { ContactModalComponent } from './components/contact-modal/contact-modal.
 import { SellerPortalComponent } from './components/seller-portal/seller-portal.component';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
 import { PropertyDetailModalComponent } from './components/property-detail-modal/property-detail-modal.component';
+import { LandingPageComponent } from './components/landing-page/landing-page.component';
 import { ToastComponent } from './components/toast/toast.component';
+import { CommonErrorComponent } from './components/common-error/common-error.component';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +24,7 @@ import { ToastComponent } from './components/toast/toast.component';
   imports: [
     CommonModule,
     NavbarComponent,
+    LandingPageComponent,
     HeroSearchComponent,
     PropertyListComponent,
     AuthModalComponent,
@@ -30,22 +33,29 @@ import { ToastComponent } from './components/toast/toast.component';
     SellerPortalComponent,
     AdminPanelComponent,
     PropertyDetailModalComponent,
-    ToastComponent
+    ToastComponent,
+    CommonErrorComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App implements OnInit {
+  // Application View & Navigation State
+  readonly currentView = signal<'landing' | 'marketplace' | 'admin-dashboard' | 'seller-dashboard'>('landing');
+  readonly sellerPortalTab = signal<'post' | 'listings'>('listings');
+
   // Application Data Signals
   readonly cities = signal<City[]>([]);
   readonly states = signal<State[]>([]);
   readonly properties = signal<Property[]>([]);
   readonly allVerifiedProperties = signal<Property[]>([]);
+  readonly purchasedProperties = signal<Property[]>([]);
   readonly isLoadingProperties = signal<boolean>(false);
 
   // Modal Signals
   readonly isAuthOpen = signal<boolean>(false);
   readonly isCartOpen = signal<boolean>(false);
+  readonly cartInitialTab = signal<'cart' | 'purchases'>('cart');
   readonly isSellerPortalOpen = signal<boolean>(false);
   readonly isAdminPanelOpen = signal<boolean>(false);
   readonly isContactOpen = signal<boolean>(false);
@@ -82,13 +92,31 @@ export class App implements OnInit {
     public authService: AuthService,
     public propertyService: PropertyService,
     public cartService: CartService
-  ) {}
+  ) {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (!user && (this.currentView() === 'admin-dashboard' || this.currentView() === 'seller-dashboard')) {
+        this.currentView.set('landing');
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadLocations();
     this.loadAllVerifiedMaster();
     this.loadProperties();
     this.refreshUserCart();
+  }
+
+  syncRoleView(): void {
+    const role = this.authService.userRole();
+    if (role === 'Admin') {
+      this.currentView.set('admin-dashboard');
+    } else if (role === 'Seller') {
+      this.currentView.set('seller-dashboard');
+    } else {
+      this.currentView.set('marketplace');
+    }
   }
 
   loadLocations(): void {
@@ -119,14 +147,14 @@ export class App implements OnInit {
     });
   }
 
+  // Loads properties from backend using 3 simple filters: City, Property Type, and Purpose
   loadProperties(): void {
     this.isLoadingProperties.set(true);
     const filter = this.activeFilter();
     this.propertyService.searchProperties(
       filter.cityId ? Number(filter.cityId) : undefined,
       filter.propertyType,
-      filter.propertyOption,
-      filter.sortBy
+      filter.propertyOption
     ).subscribe({
       next: res => {
         this.isLoadingProperties.set(false);
@@ -144,11 +172,74 @@ export class App implements OnInit {
     const user = this.authService.currentUser();
     if (user && user.userType === 'Buyer' && user.profileId) {
       this.cartService.getBuyerCart(user.profileId).subscribe();
+      this.loadBuyerPurchases();
     } else {
       this.cartService.clearCart();
+      this.purchasedProperties.set([]);
     }
   }
 
+  loadBuyerPurchases(): void {
+    const user = this.authService.currentUser();
+    if (user && user.userType === 'Buyer' && user.profileId) {
+      this.propertyService.getBuyerPurchases(user.profileId).subscribe({
+        next: res => {
+          if (res.success && res.data) {
+            this.purchasedProperties.set(res.data);
+          }
+        }
+      });
+    } else {
+      this.purchasedProperties.set([]);
+    }
+  }
+
+  openBuyerCart(tab: 'cart' | 'purchases' = 'cart'): void {
+    this.cartInitialTab.set(tab);
+    this.loadBuyerPurchases();
+    this.isCartOpen.set(true);
+  }
+
+  handleBuyProperty(propertyId: number): void {
+    const user = this.authService.currentUser();
+    if (!user) {
+      this.isAuthOpen.set(true);
+      this.showToast('Please login as a Buyer to purchase properties', 'info');
+      return;
+    }
+    if (user.userType !== 'Buyer' || !user.profileId) {
+      this.showToast('Only registered Buyers can buy properties', 'info');
+      return;
+    }
+
+    const buyerId = user.profileId;
+    this.propertyService.buyProperty(propertyId, buyerId).subscribe({
+      next: res => {
+        if (res.success) {
+          this.showToast('🎉 Property purchased successfully! Added to your purchases.', 'success');
+          const inCart = this.cartService.cartItems().find(i => i.propertyId === propertyId);
+          if (inCart) {
+            this.cartService.removeFromCart(inCart.cartId, buyerId).subscribe();
+          }
+          this.loadProperties();
+          this.loadAllVerifiedMaster();
+          this.loadBuyerPurchases();
+          this.isDetailOpen.set(false);
+        } else {
+          this.showToast(res.message || 'Purchase failed', 'error');
+        }
+      },
+      error: err => {
+        this.showToast(err.error?.message || 'Could not complete purchase.', 'error');
+      }
+    });
+  }
+
+  handleBuyCartItem(item: EnrichedCartItem): void {
+    this.handleBuyProperty(item.propertyId);
+  }
+
+  // Called when user clicks "SEARCH PROPERTIES" or toggles BUY/RENT
   onSearchTriggered(params: PropertyFilterCriteria): void {
     this.activeFilter.update(curr => ({
       ...curr,
@@ -157,14 +248,7 @@ export class App implements OnInit {
     this.loadProperties();
   }
 
-  onFilterChanged(params: PropertyFilterCriteria): void {
-    this.activeFilter.update(curr => ({
-      ...curr,
-      ...params
-    }));
-    this.loadProperties();
-  }
-
+  // Removes city filter when user clicks "View All Cities"
   onClearCity(): void {
     this.activeFilter.update(curr => ({
       ...curr,
@@ -173,14 +257,82 @@ export class App implements OnInit {
     this.loadProperties();
   }
 
+  // Resets filters back to default (Purpose: Sell, City: All, Type: All)
+  onResetFilters(): void {
+    this.activeFilter.set({
+      propertyOption: 'Sell',
+      cityId: null,
+      propertyType: ''
+    });
+    this.loadProperties();
+  }
+
+  // Called when user clicks the logo: goes to role dashboard if logged in, or landing if guest
   onHomeReset(): void {
     this.activeFilter.set({ propertyOption: 'Sell' });
     this.loadProperties();
+    if (this.authService.isLoggedIn()) {
+      this.syncRoleView();
+    } else {
+      this.currentView.set('landing');
+    }
   }
 
   onAuthSuccess(session: UserSession): void {
     this.refreshUserCart();
+    if (session.userType === 'Admin') {
+      this.currentView.set('admin-dashboard');
+    } else if (session.userType === 'Seller') {
+      this.currentView.set('seller-dashboard');
+    } else {
+      this.currentView.set('marketplace');
+    }
     this.showToast(`Welcome, ${session.fullName}! (${session.userType})`, 'success');
+  }
+
+  setView(view: 'landing' | 'marketplace' | 'admin-dashboard' | 'seller-dashboard'): void {
+    if (view === 'landing' && this.authService.isLoggedIn()) {
+      this.syncRoleView();
+      return;
+    }
+    if (view === 'admin-dashboard' && this.authService.userRole() !== 'Admin') {
+      this.showToast('Access denied: Admin credentials required', 'error');
+      this.syncRoleView();
+      return;
+    }
+    if (view === 'seller-dashboard' && this.authService.userRole() !== 'Seller') {
+      this.showToast('Access denied: Seller credentials required', 'error');
+      this.syncRoleView();
+      return;
+    }
+    if (view === 'seller-dashboard') {
+      this.sellerPortalTab.set('listings');
+    }
+    this.currentView.set(view);
+  }
+
+  onLandingSearch(criteria: PropertyFilterCriteria): void {
+    this.activeFilter.update(curr => ({
+      ...curr,
+      ...criteria
+    }));
+    this.loadProperties();
+    this.currentView.set('marketplace');
+  }
+
+  onLandingBrowseAll(): void {
+    this.currentView.set('marketplace');
+  }
+
+  handleOpenPostProperty(): void {
+    const role = this.authService.userRole();
+    if (role !== 'Seller') {
+      this.showToast('Please login as a Seller to post properties', 'info');
+      this.isAuthOpen.set(true);
+      return;
+    }
+    this.sellerPortalTab.set('post');
+    this.currentView.set('seller-dashboard');
   }
 
   openPropertyDetails(property: Property): void {
@@ -234,7 +386,9 @@ export class App implements OnInit {
   onRemoveCartItem(cartId: number): void {
     const user = this.authService.currentUser();
     if (user && user.profileId) {
-      this.cartService.removeFromCart(cartId, user.profileId).subscribe(() => {
+      const item = this.cartService.cartItems().find(i => i.cartId === cartId);
+      const propId = item?.propertyId || cartId;
+      this.cartService.removeFromCart(cartId, user.profileId, propId).subscribe(() => {
         this.showToast('Property removed from cart', 'info');
       });
     }

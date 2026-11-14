@@ -2,20 +2,24 @@ using EasyHousingSolution.PropertyService.Application.DTOs;
 using EasyHousingSolution.PropertyService.Application.Interfaces;
 using EasyHousingSolution.PropertyService.Domain.Entities;
 using EasyHousingSolution.PropertyService.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace EasyHousingSolution.PropertyService.Application.Services;
 
 public class PropertyAppService : IPropertyAppService
 {
     private readonly IPropertyRepository _propertyRepository;
+    private readonly ILogger<PropertyAppService> _logger;
 
-    public PropertyAppService(IPropertyRepository propertyRepository)
+    public PropertyAppService(IPropertyRepository propertyRepository, ILogger<PropertyAppService> logger)
     {
         _propertyRepository = propertyRepository;
+        _logger = logger;
     }
 
     public async Task<PropertyResponseDto> CreatePropertyAsync(CreatePropertyDto dto)
     {
+        _logger.LogInformation("Creating property '{PropertyName}' for SellerId {SellerId}", dto.PropertyName, dto.SellerId);
         if (string.IsNullOrWhiteSpace(dto.PropertyName))
             throw new ArgumentException("Property name is required.");
 
@@ -115,6 +119,53 @@ public class PropertyAppService : IPropertyAppService
 
         await _propertyRepository.UpdateAsync(property);
         return MapToDto(property);
+    }
+
+    public async Task<PropertyResponseDto> BuyPropertyAsync(int id, int buyerId)
+    {
+        var property = await _propertyRepository.GetByIdAsync(id);
+        if (property == null)
+            throw new KeyNotFoundException($"Property with ID {id} not found.");
+
+        if (!property.IsActive)
+            throw new InvalidOperationException("This property is not available for purchase or has already been sold.");
+
+        property.IsActive = false;
+        property.DeactivationReason = $"Sold to Buyer #{buyerId}";
+
+        await _propertyRepository.UpdateAsync(property);
+        return MapToDto(property);
+    }
+
+    public async Task<IEnumerable<PropertyResponseDto>> GetPurchasedPropertiesByBuyerIdAsync(int buyerId)
+    {
+        var properties = await _propertyRepository.GetPurchasedPropertiesByBuyerIdAsync(buyerId);
+        return properties.Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<PropertyResponseDto>> GetSoldPropertiesBySellerIdAsync(int sellerId)
+    {
+        var properties = await _propertyRepository.GetSoldPropertiesBySellerIdAsync(sellerId);
+        return properties.Select(MapToDto);
+    }
+
+    public async Task<AdminSalesReportDto> GetSalesReportAsync()
+    {
+        var all = (await _propertyRepository.GetAllAsync()).ToList();
+        var sold = all.Where(p => !p.IsActive && p.DeactivationReason != null && p.DeactivationReason.StartsWith("Sold")).ToList();
+        var active = all.Where(p => p.IsActive).ToList();
+        var deactivated = all.Where(p => !p.IsActive && (p.DeactivationReason == null || !p.DeactivationReason.StartsWith("Sold"))).ToList();
+
+        return new AdminSalesReportDto
+        {
+            TotalProperties = all.Count,
+            TotalActiveProperties = active.Count,
+            TotalSoldProperties = sold.Count,
+            TotalDeactivatedProperties = deactivated.Count,
+            TotalSoldValue = sold.Sum(p => p.PriceRange),
+            TotalActiveValue = active.Sum(p => p.PriceRange),
+            SoldProperties = sold.Select(MapToDto).ToList()
+        };
     }
 
     public async Task DeletePropertyAsync(int id)

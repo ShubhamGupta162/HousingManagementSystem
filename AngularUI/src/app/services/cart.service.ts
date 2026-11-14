@@ -15,8 +15,13 @@ export class CartService {
 
   constructor(private http: HttpClient) {}
 
-  getBuyerCart(buyerId: number): Observable<ApiResponse<EnrichedCartItem[]>> {
-    return this.http.get<ApiResponse<EnrichedCartItem[]>>(`${this.baseUrl}/buyer/${buyerId}`).pipe(
+  getMyCart(): Observable<ApiResponse<EnrichedCartItem[]>> {
+    return this.getBuyerCart();
+  }
+
+  getBuyerCart(buyerId?: number): Observable<ApiResponse<EnrichedCartItem[]>> {
+    const url = this.baseUrl;
+    return this.http.get<ApiResponse<EnrichedCartItem[]>>(url).pipe(
       tap(res => {
         if (res.success && res.data) {
           this.cartItems.set(res.data);
@@ -25,8 +30,10 @@ export class CartService {
         }
       }),
       catchError(() => {
-        let local = this.loadLocalCart().filter(i => i.buyerId === buyerId);
-        if (local.length === 0 && buyerId === 1 && !localStorage.getItem('ehs_cart_initialized')) {
+        const targetId = buyerId || 1;
+        let local = this.loadLocalCart().filter(i => i.buyerId === targetId);
+        const isInit = sessionStorage.getItem('ehs_cart_initialized') || localStorage.getItem('ehs_cart_initialized');
+        if (local.length === 0 && targetId === 1 && !isInit) {
           local = [
             {
               cartId: 1,
@@ -65,7 +72,10 @@ export class CartService {
               }
             }
           ];
-          try { localStorage.setItem('ehs_cart_initialized', 'true'); } catch {}
+          try {
+            sessionStorage.setItem('ehs_cart_initialized', 'true');
+            localStorage.removeItem('ehs_cart_initialized');
+          } catch {}
           this.saveLocalCart(local);
         }
         this.cartItems.set(local);
@@ -80,7 +90,7 @@ export class CartService {
   }
 
   addToCart(buyerId: number, propertyId: number, propertyData?: Property): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(this.baseUrl, { buyerId, propertyId }).pipe(
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/items`, { propertyId }).pipe(
       tap(() => this.getBuyerCart(buyerId).subscribe()),
       catchError(() => {
         const current = this.loadLocalCart();
@@ -106,14 +116,17 @@ export class CartService {
     );
   }
 
-  removeFromCart(cartId: number, buyerId: number): Observable<ApiResponse<boolean>> {
-    return this.http.delete<ApiResponse<boolean>>(`${this.baseUrl}/${cartId}`).pipe(
+  removeFromCart(cartId: number, buyerId: number, propertyId?: number): Observable<ApiResponse<boolean>> {
+    // Optimistically update local cart signals
+    const filtered = this.loadLocalCart().filter(i => i.cartId !== cartId);
+    this.saveLocalCart(filtered);
+    this.cartItems.set(filtered);
+    this.cartCount.set(filtered.length);
+
+    const targetPropId = propertyId || cartId;
+    return this.http.delete<any>(`${this.baseUrl}/items/${targetPropId}`, { responseType: 'text' as 'json' }).pipe(
       tap(() => this.getBuyerCart(buyerId).subscribe()),
       catchError(() => {
-        const filtered = this.loadLocalCart().filter(i => i.cartId !== cartId);
-        this.saveLocalCart(filtered);
-        this.cartItems.set(filtered);
-        this.cartCount.set(filtered.length);
         return of({
           success: true,
           message: 'Item removed from cart',
@@ -124,14 +137,24 @@ export class CartService {
   }
 
   clearCart(): void {
-    localStorage.removeItem(this.storageKey);
+    try {
+      sessionStorage.removeItem(this.storageKey);
+      localStorage.removeItem(this.storageKey);
+    } catch {}
     this.cartItems.set([]);
     this.cartCount.set(0);
   }
 
   private loadLocalCart(): EnrichedCartItem[] {
     try {
-      const raw = localStorage.getItem(this.storageKey);
+      let raw = sessionStorage.getItem(this.storageKey);
+      if (!raw) {
+        raw = localStorage.getItem(this.storageKey);
+        if (raw) {
+          sessionStorage.setItem(this.storageKey, raw);
+          localStorage.removeItem(this.storageKey);
+        }
+      }
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
@@ -140,7 +163,8 @@ export class CartService {
 
   private saveLocalCart(items: EnrichedCartItem[]): void {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(items));
+      sessionStorage.setItem(this.storageKey, JSON.stringify(items));
+      localStorage.removeItem(this.storageKey);
     } catch {}
   }
 }

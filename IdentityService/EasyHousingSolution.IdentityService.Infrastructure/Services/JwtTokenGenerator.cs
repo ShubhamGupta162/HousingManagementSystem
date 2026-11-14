@@ -32,6 +32,14 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         if (profileId.HasValue)
         {
             claims.Add(new Claim("profileId", profileId.Value.ToString()));
+            if (string.Equals(userType, "Seller", StringComparison.OrdinalIgnoreCase))
+            {
+                claims.Add(new Claim("sellerId", profileId.Value.ToString()));
+            }
+            else if (string.Equals(userType, "Buyer", StringComparison.OrdinalIgnoreCase))
+            {
+                claims.Add(new Claim("buyerId", profileId.Value.ToString()));
+            }
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

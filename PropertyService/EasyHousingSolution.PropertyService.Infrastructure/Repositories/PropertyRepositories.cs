@@ -98,6 +98,23 @@ public class PropertyRepository : IPropertyRepository
 
         return await query.ToListAsync();
     }
+
+    public async Task<IEnumerable<Property>> GetPurchasedPropertiesByBuyerIdAsync(int buyerId)
+    {
+        string prefix = $"Sold to Buyer #{buyerId}";
+        return await _context.Properties
+            .Where(p => !p.IsActive && p.DeactivationReason != null && p.DeactivationReason.StartsWith(prefix))
+            .OrderByDescending(p => p.PropertyId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Property>> GetSoldPropertiesBySellerIdAsync(int sellerId)
+    {
+        return await _context.Properties
+            .Where(p => p.SellerId == sellerId && !p.IsActive && p.DeactivationReason != null && p.DeactivationReason.StartsWith("Sold"))
+            .OrderByDescending(p => p.PropertyId)
+            .ToListAsync();
+    }
 }
 
 public class StateRepository : IStateRepository

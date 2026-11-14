@@ -1,12 +1,11 @@
 using EasyHousingSolution.IdentityService.Application.DTOs;
 using EasyHousingSolution.IdentityService.Application.Interfaces;
-using EasyHousingSolution.Shared.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyHousingSolution.IdentityService.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/identity")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -17,23 +16,47 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register-buyer")]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> RegisterBuyer([FromBody] RegisterBuyerDto dto)
+    [Tags("Buyer")]
+    public async Task<IActionResult> RegisterBuyer(RegisterBuyerDto dto)
     {
-        var result = await _authService.RegisterBuyerAsync(dto);
-        return CreatedAtAction(nameof(RegisterBuyer), ApiResponse<AuthResponseDto>.Ok(result, "Buyer registered successfully."));
+        try
+        {
+            var result = await _authService.RegisterBuyerAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("register-seller")]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> RegisterSeller([FromBody] RegisterSellerDto dto)
+    [Tags("Seller")]
+    public async Task<IActionResult> RegisterSeller(RegisterSellerDto dto)
     {
-        var result = await _authService.RegisterSellerAsync(dto);
-        return CreatedAtAction(nameof(RegisterSeller), ApiResponse<AuthResponseDto>.Ok(result, "Seller registered successfully."));
+        try
+        {
+            var result = await _authService.RegisterSellerAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto)
+    [Tags("User")]
+    public async Task<IActionResult> Login(LoginDto dto)
     {
-        var result = await _authService.LoginAsync(dto);
-        return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Login successful."));
+        try
+        {
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

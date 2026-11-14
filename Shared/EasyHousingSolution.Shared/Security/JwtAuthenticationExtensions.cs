@@ -33,6 +33,28 @@ public static class JwtAuthenticationExtensions
                 ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
             };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                    if (!string.IsNullOrEmpty(authHeader))
+                    {
+                        var trimmed = authHeader.Trim();
+                        if (trimmed.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            context.Token = trimmed.Substring("Bearer ".Length).Trim();
+                        }
+                        else if (!trimmed.Contains(' ') && trimmed.Split('.').Length == 3)
+                        {
+                            // Handles raw JWT token entered directly without "Bearer " prefix
+                            context.Token = trimmed;
+                        }
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         services.AddAuthorization();

@@ -18,11 +18,12 @@ public class PropertyDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // State
+        // iii) State: StateId int identity primary key, StateName varchar(30)
         modelBuilder.Entity<State>(entity =>
         {
+            entity.ToTable("State");
             entity.HasKey(e => e.StateId);
-            entity.Property(e => e.StateName).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.StateName).HasColumnType("varchar(30)").HasMaxLength(30);
 
             entity.HasData(
                 new State { StateId = 1, StateName = "Maharashtra" },
@@ -32,11 +33,13 @@ public class PropertyDbContext : DbContext
             );
         });
 
-        // City
+        // iv) City: CityId int identity primary key, CityName varchar(50) not null, StateId int foreign key not null
         modelBuilder.Entity<City>(entity =>
         {
+            entity.ToTable("City");
             entity.HasKey(e => e.CityId);
-            entity.Property(e => e.CityName).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.CityName).HasColumnType("varchar(50)").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.StateId).IsRequired();
 
             entity.HasData(
                 new City { CityId = 1, CityName = "Mumbai", StateId = 1 },
@@ -48,19 +51,21 @@ public class PropertyDbContext : DbContext
             );
         });
 
-        // Property
+        // vi) Property: PropertyId int identity primary key, PropertyName varchar(50) not null, PropertyType varchar(15) not null, PropertyOption varchar(10) not null, Description varchar(250), Address varchar(250) not null, PriceRange money not null, InitialDeposit money not null, Landmark varchar(25) not null, IsActive bit not null, SellerId int foreign key not null
         modelBuilder.Entity<Property>(entity =>
         {
+            entity.ToTable("Property");
             entity.HasKey(e => e.PropertyId);
-            entity.Property(e => e.PropertyName).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.PropertyType).HasMaxLength(15).IsRequired();
-            entity.Property(e => e.PropertyOption).HasMaxLength(10).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(250);
-            entity.Property(e => e.Address).HasMaxLength(250).IsRequired();
-            entity.Property(e => e.PriceRange).HasColumnType("decimal(18,2)").IsRequired();
-            entity.Property(e => e.InitialDeposit).HasColumnType("decimal(18,2)").IsRequired();
-            entity.Property(e => e.Landmark).HasMaxLength(25).IsRequired();
-            entity.Property(e => e.DeactivationReason).HasMaxLength(250);
+            entity.Property(e => e.PropertyName).HasColumnType("varchar(50)").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.PropertyType).HasColumnType("varchar(15)").HasMaxLength(15).IsRequired();
+            entity.Property(e => e.PropertyOption).HasColumnType("varchar(10)").HasMaxLength(10).IsRequired();
+            entity.Property(e => e.Description).HasColumnType("varchar(250)").HasMaxLength(250);
+            entity.Property(e => e.Address).HasColumnType("varchar(250)").HasMaxLength(250).IsRequired();
+            entity.Property(e => e.PriceRange).HasColumnType("money").IsRequired();
+            entity.Property(e => e.InitialDeposit).HasColumnType("money").IsRequired();
+            entity.Property(e => e.Landmark).HasColumnType("varchar(25)").HasMaxLength(25).IsRequired();
+            entity.Property(e => e.IsActive).HasColumnType("bit").IsRequired();
+            entity.Property(e => e.DeactivationReason).HasColumnType("varchar(250)").HasMaxLength(250);
 
             entity.HasData(
                 new Property
@@ -204,11 +209,14 @@ public class PropertyDbContext : DbContext
             );
         });
 
-        // PropertyImage
+        // vii) Images: ImageId int identity primary key, PropertyId int foreign key not null, Image not null
         modelBuilder.Entity<PropertyImage>(entity =>
         {
+            entity.ToTable("Images");
             entity.HasKey(e => e.ImageId);
-            entity.Property(e => e.ImageData).IsRequired();
+            entity.Property(e => e.PropertyId).IsRequired();
+            entity.Property(e => e.ImageData).HasColumnName("Image").HasColumnType("varchar(max)").IsRequired();
+            entity.Ignore(e => e.Image);
 
             entity.HasData(
                 new PropertyImage

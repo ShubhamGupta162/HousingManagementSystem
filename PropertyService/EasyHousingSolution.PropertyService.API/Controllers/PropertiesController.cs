@@ -1,6 +1,5 @@
 using EasyHousingSolution.PropertyService.Application.DTOs;
 using EasyHousingSolution.PropertyService.Application.Interfaces;
-using EasyHousingSolution.Shared.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,92 +16,174 @@ public class PropertiesController : ControllerBase
         _propertyService = propertyService;
     }
 
-    // Only Seller can post/add property
+    private int GetTokenProfileId()
+    {
+        var claim = User.FindFirst("profileId")?.Value
+                 ?? User.FindFirst("sellerId")?.Value
+                 ?? User.FindFirst("buyerId")?.Value;
+        return int.TryParse(claim, out var id) ? id : 0;
+    }
+
+    [HttpGet]
+    [Tags("Buyer")]
+    public async Task<IActionResult> GetAllProperties()
+    {
+        var properties = await _propertyService.GetVerifiedPropertiesAsync();
+        return Ok(properties);
+    }
+
     [HttpPost]
+    [Tags("Seller")]
     [Authorize(Roles = "Seller")]
-    public async Task<ActionResult<ApiResponse<PropertyResponseDto>>> CreateProperty([FromBody] CreatePropertyDto dto)
+    public async Task<IActionResult> CreateProperty(CreatePropertyDto dto)
     {
+        if (dto.SellerId <= 0)
+        {
+            var profileId = GetTokenProfileId();
+            dto.SellerId = profileId > 0 ? profileId : 1;
+        }
+
         var created = await _propertyService.CreatePropertyAsync(dto);
-        return CreatedAtAction(nameof(GetPropertyById), new { id = created.PropertyId }, ApiResponse<PropertyResponseDto>.Ok(created, "Property added successfully. Awaiting administrator verification."));
+        return CreatedAtAction(nameof(GetPropertyById), new { id = created.PropertyId }, created);
     }
 
-    // Only Seller can edit their property
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Seller")]
-    public async Task<ActionResult<ApiResponse<PropertyResponseDto>>> UpdateProperty(int id, [FromBody] UpdatePropertyDto dto)
+    [Tags("Seller")]
+    [Authorize(Roles = "Seller,Admin")]
+    public async Task<IActionResult> UpdateProperty(int id, UpdatePropertyDto dto)
     {
+        var existing = await _propertyService.GetPropertyByIdAsync(id);
+        if (existing == null)
+        {
+            return NotFound($"Property with ID {id} not found.");
+        }
+
+        var tokenSellerId = GetTokenProfileId();
+        if (!User.IsInRole("Admin") && existing.SellerId != tokenSellerId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "You do not own this property and cannot modify it." });
+        }
+
         var updated = await _propertyService.UpdatePropertyAsync(id, dto);
-        return Ok(ApiResponse<PropertyResponseDto>.Ok(updated, "Property updated successfully."));
+        return Ok(updated);
     }
 
-    // Public / Buyers can view property details
+    [HttpDelete("{id:int}")]
+    [Tags("Seller")]
+    [Authorize(Roles = "Seller,Admin")]
+    public async Task<IActionResult> DeleteProperty(int id)
+    {
+        var existing = await _propertyService.GetPropertyByIdAsync(id);
+        if (existing == null)
+        {
+            return NotFound($"Property with ID {id} not found.");
+        }
+
+        var tokenSellerId = GetTokenProfileId();
+        if (!User.IsInRole("Admin") && existing.SellerId != tokenSellerId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "You do not own this property and cannot delete it." });
+        }
+
+        await _propertyService.DeletePropertyAsync(id);
+        return Ok(new { success = true, message = "Property deleted successfully." });
+    }
+
     [HttpGet("{id:int}")]
+    [Tags("Buyer")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<PropertyResponseDto>>> GetPropertyById(int id)
+    public async Task<IActionResult> GetPropertyById(int id)
     {
         var property = await _propertyService.GetPropertyByIdAsync(id);
         if (property == null)
         {
-            return NotFound(ApiResponse<PropertyResponseDto>.Fail($"Property with ID {id} not found."));
+            return NotFound($"Property with ID {id} not found.");
         }
-        return Ok(ApiResponse<PropertyResponseDto>.Ok(property));
+        return Ok(property);
     }
 
-    // Public / Buyers can view all verified properties
-    [HttpGet("verified")]
-    [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyResponseDto>>>> GetVerifiedProperties()
-    {
-        var properties = await _propertyService.GetVerifiedPropertiesAsync();
-        return Ok(ApiResponse<IEnumerable<PropertyResponseDto>>.Ok(properties));
-    }
-
-    // Public / Buyers can search properties by city, type, and sort by price/name
     [HttpGet("search")]
+    [Tags("Buyer")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyResponseDto>>>> SearchProperties(
-        [FromQuery] int? cityId,
-        [FromQuery] string? propertyType,
-        [FromQuery] string? propertyOption,
-        [FromQuery] string? sortBy)
+    public async Task<IActionResult> SearchProperties(
+        int? cityId,
+        string? propertyType,
+        string? propertyOption,
+        string? sortBy)
     {
         var properties = await _propertyService.SearchPropertiesAsync(cityId, propertyType, propertyOption, sortBy);
-        return Ok(ApiResponse<IEnumerable<PropertyResponseDto>>.Ok(properties));
+        return Ok(properties);
     }
 
-    // Seller views their verified properties (Admin can also view)
-    [HttpGet("seller/{sellerId:int}/verified")]
-    [Authorize(Roles = "Seller,Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyResponseDto>>>> GetSellerVerifiedProperties(int sellerId)
+    // --- Seller Self-Service Endpoints (Token-Based, No ID needed in URL) ---
+
+    [HttpGet("my-properties")]
+    [Tags("Seller")]
+    [Authorize(Roles = "Seller")]
+    public async Task<IActionResult> GetMyProperties([FromQuery] string? status)
     {
-        var properties = await _propertyService.GetPropertiesBySellerAsync(sellerId, isActive: true);
-        return Ok(ApiResponse<IEnumerable<PropertyResponseDto>>.Ok(properties));
+        var sellerId = GetTokenProfileId();
+        if (sellerId <= 0) return Unauthorized("Seller profile ID not found in token.");
+
+        if (string.Equals(status, "verified", StringComparison.OrdinalIgnoreCase))
+        {
+            var verified = await _propertyService.GetPropertiesBySellerAsync(sellerId, isActive: true);
+            return Ok(verified);
+        }
+        if (string.Equals(status, "deactivated", StringComparison.OrdinalIgnoreCase))
+        {
+            var deactivated = await _propertyService.GetPropertiesBySellerAsync(sellerId, isActive: false);
+            return Ok(deactivated);
+        }
+        var all = await _propertyService.GetPropertiesBySellerAsync(sellerId);
+        return Ok(all);
     }
 
-    // Seller views their deactivated properties (Admin can also view)
-    [HttpGet("seller/{sellerId:int}/deactivated")]
-    [Authorize(Roles = "Seller,Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyResponseDto>>>> GetSellerDeactivatedProperties(int sellerId)
+    // --- Admin Property Moderation & Status Endpoints ---
+
+    [HttpGet("admin/all")]
+    [HttpGet("/api/admin/properties")]
+    [Tags("Admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllPropertiesForAdmin()
     {
-        var properties = await _propertyService.GetPropertiesBySellerAsync(sellerId, isActive: false);
-        return Ok(ApiResponse<IEnumerable<PropertyResponseDto>>.Ok(properties));
+        var properties = await _propertyService.GetAllPropertiesAsync();
+        return Ok(properties);
     }
 
-    // View all properties by seller (Admin can view by owner; Seller can view their own)
-    [HttpGet("seller/{sellerId:int}/all")]
-    [Authorize(Roles = "Seller,Admin")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyResponseDto>>>> GetSellerAllProperties(int sellerId)
+    [HttpPut("{id:int}/approve")]
+    [Tags("Admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ApproveProperty(int id)
     {
-        var properties = await _propertyService.GetPropertiesBySellerAsync(sellerId);
-        return Ok(ApiResponse<IEnumerable<PropertyResponseDto>>.Ok(properties));
+        var result = await _propertyService.VerifyPropertyAsync(id);
+        return Ok(result);
     }
 
-    // Seller or Admin can delete
-    [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Seller,Admin")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteProperty(int id)
+    [HttpPut("{id:int}/reject")]
+    [Tags("Admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RejectProperty(int id, [FromBody] DeactivatePropertyDto? dto)
     {
-        await _propertyService.DeletePropertyAsync(id);
-        return Ok(ApiResponse<bool>.Ok(true, "Property deleted successfully."));
+        var reason = !string.IsNullOrWhiteSpace(dto?.Reason) ? dto.Reason : "Rejected by Administrator";
+        var result = await _propertyService.DeactivatePropertyAsync(id, reason);
+        return Ok(result);
+    }
+
+    [HttpPut("{id:int}/status")]
+    [Tags("Admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdatePropertyStatus(int id, [FromBody] PropertyStatusUpdateDto dto)
+    {
+        PropertyResponseDto result;
+        if (dto.IsActive)
+        {
+            result = await _propertyService.VerifyPropertyAsync(id);
+        }
+        else
+        {
+            result = await _propertyService.DeactivatePropertyAsync(id, dto.Reason ?? "Deactivated by Administrator");
+        }
+        return Ok(result);
     }
 }

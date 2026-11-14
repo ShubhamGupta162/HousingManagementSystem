@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, catchError } from 'rxjs';
+import { Observable, of, catchError, map } from 'rxjs';
 import { ApiResponse, Property, City, State, PropertyImage, SellerContact } from '../models/models';
 
 @Injectable({
@@ -217,8 +217,17 @@ export class PropertyService {
   }
 
   createProperty(payload: Partial<Property>): Observable<ApiResponse<Property>> {
-    return this.http.post<ApiResponse<Property>>(`${this.gatewayUrl}/properties`, payload).pipe(
-      catchError(() => {
+    return this.http.post<any>(`${this.gatewayUrl}/properties`, payload).pipe(
+      map(res => {
+        const data = (res && res.data) ? res.data : res;
+        return {
+          success: true,
+          message: res?.message || 'Property created successfully',
+          data: data as Property
+        };
+      }),
+      catchError(err => {
+        console.warn('[PropertyService] Backend createProperty failed, saving to local fallback:', err);
         const newId = this.sampleProperties.length + 1;
         const newProp: Property = {
           propertyId: newId,
@@ -244,10 +253,18 @@ export class PropertyService {
     );
   }
 
-  getSellerProperties(sellerId: number, type: 'all' | 'verified' | 'deactivated' = 'all'): Observable<ApiResponse<Property[]>> {
-    return this.http.get<ApiResponse<Property[]>>(`${this.gatewayUrl}/properties/seller/${sellerId}/${type}`).pipe(
+  getMyListings(type: 'all' | 'verified' | 'deactivated' = 'all'): Observable<ApiResponse<Property[]>> {
+    return this.getSellerProperties(0, type);
+  }
+
+  getSellerProperties(sellerId?: number, type: 'all' | 'verified' | 'deactivated' = 'all'): Observable<ApiResponse<Property[]>> {
+    const url = (!sellerId || sellerId <= 0)
+      ? `${this.gatewayUrl}/properties/my-properties?status=${type}`
+      : `${this.gatewayUrl}/properties/my-properties?status=${type}`;
+    return this.http.get<ApiResponse<Property[]>>(url).pipe(
       catchError(() => {
-        let list = this.sampleProperties.filter(p => p.sellerId === sellerId);
+        const targetId = sellerId || 1;
+        let list = this.sampleProperties.filter(p => p.sellerId === targetId);
         if (type === 'verified') list = list.filter(p => p.isActive);
         if (type === 'deactivated') list = list.filter(p => !p.isActive);
         return of({
@@ -260,7 +277,7 @@ export class PropertyService {
   }
 
   getAllPropertiesAdmin(): Observable<ApiResponse<Property[]>> {
-    return this.http.get<ApiResponse<Property[]>>(`${this.gatewayUrl}/verifications/all`).pipe(
+    return this.http.get<ApiResponse<Property[]>>(`${this.gatewayUrl}/properties/admin/all`).pipe(
       catchError(() => of({
         success: true,
         message: 'Loaded all properties for admin',
@@ -270,7 +287,7 @@ export class PropertyService {
   }
 
   verifyProperty(id: number): Observable<ApiResponse<Property>> {
-    return this.http.put<ApiResponse<Property>>(`${this.gatewayUrl}/verifications/${id}/verify`, {}).pipe(
+    return this.http.put<ApiResponse<Property>>(`${this.gatewayUrl}/properties/${id}/approve`, {}).pipe(
       catchError(() => {
         const prop = this.sampleProperties.find(p => p.propertyId === id);
         if (prop) {
@@ -287,7 +304,7 @@ export class PropertyService {
   }
 
   deactivateProperty(id: number, reason: string): Observable<ApiResponse<Property>> {
-    return this.http.put<ApiResponse<Property>>(`${this.gatewayUrl}/verifications/${id}/deactivate`, { reason }).pipe(
+    return this.http.put<ApiResponse<Property>>(`${this.gatewayUrl}/properties/${id}/reject`, { reason }).pipe(
       catchError(() => {
         const prop = this.sampleProperties.find(p => p.propertyId === id);
         if (prop) {
@@ -304,7 +321,15 @@ export class PropertyService {
   }
 
   uploadImages(propertyId: number, images: string[]): Observable<ApiResponse<PropertyImage[]>> {
-    return this.http.post<ApiResponse<PropertyImage[]>>(`${this.gatewayUrl}/properties/${propertyId}/images`, { images }).pipe(
+    return this.http.post<any>(`${this.gatewayUrl}/properties/${propertyId}/images`, { images }).pipe(
+      map(res => {
+        const data = (res && res.data) ? res.data : res;
+        return {
+          success: true,
+          message: 'Images uploaded successfully',
+          data: (Array.isArray(data) ? data : []) as PropertyImage[]
+        };
+      }),
       catchError(() => of({
         success: true,
         message: 'Images uploaded successfully',
@@ -365,6 +390,100 @@ export class PropertyService {
           success: true,
           message: 'Owner contact retrieved',
           data: contact
+        });
+      })
+    );
+  }
+
+  buyProperty(propertyId: number, buyerId: number): Observable<ApiResponse<Property>> {
+    return this.http.post<any>(`${this.gatewayUrl}/properties/${propertyId}/buy`, { buyerId }).pipe(
+      map(res => {
+        const prop = this.sampleProperties.find(p => p.propertyId === propertyId);
+        if (prop) {
+          prop.isActive = false;
+          prop.deactivationReason = `Sold to Buyer #${buyerId}`;
+        }
+        const data = (res && res.data) ? res.data : (res && res.propertyId ? res : prop);
+        return {
+          success: true,
+          message: 'Property purchased successfully! Added to your purchases.',
+          data: data as Property
+        };
+      }),
+      catchError(() => {
+        const prop = this.sampleProperties.find(p => p.propertyId === propertyId);
+        if (prop) {
+          prop.isActive = false;
+          prop.deactivationReason = `Sold to Buyer #${buyerId}`;
+        }
+        return of({
+          success: true,
+          message: 'Property purchased successfully! Added to your purchases.',
+          data: prop as Property
+        });
+      })
+    );
+  }
+
+  getMyPurchases(): Observable<ApiResponse<Property[]>> {
+    return this.getBuyerPurchases(0);
+  }
+
+  getBuyerPurchases(buyerId?: number): Observable<ApiResponse<Property[]>> {
+    const url = (!buyerId || buyerId <= 0)
+      ? `${this.gatewayUrl}/properties/my-purchases`
+      : `${this.gatewayUrl}/properties/buyer/${buyerId}/purchases`;
+    return this.http.get<ApiResponse<Property[]>>(url).pipe(
+      catchError(() => {
+        const targetId = buyerId || 1;
+        const prefix = `Sold to Buyer #${targetId}`;
+        const bought = this.sampleProperties.filter(p => !p.isActive && p.deactivationReason?.startsWith(prefix));
+        return of({
+          success: true,
+          message: 'Loaded buyer purchases',
+          data: bought
+        });
+      })
+    );
+  }
+
+  getMySoldProperties(): Observable<ApiResponse<Property[]>> {
+    return this.getSellerSoldProperties(0);
+  }
+
+  getSellerSoldProperties(sellerId?: number): Observable<ApiResponse<Property[]>> {
+    const url = (!sellerId || sellerId <= 0)
+      ? `${this.gatewayUrl}/properties/my-sold`
+      : `${this.gatewayUrl}/properties/seller/${sellerId}/sold`;
+    return this.http.get<ApiResponse<Property[]>>(url).pipe(
+      catchError(() => {
+        const targetId = sellerId || 1;
+        const sold = this.sampleProperties.filter(p => p.sellerId === targetId && !p.isActive && p.deactivationReason?.startsWith('Sold'));
+        return of({
+          success: true,
+          message: 'Loaded seller sold properties',
+          data: sold
+        });
+      })
+    );
+  }
+
+  getAdminSalesReport(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.gatewayUrl}/verifications/sales-report`).pipe(
+      catchError(() => {
+        const sold = this.sampleProperties.filter(p => !p.isActive && p.deactivationReason?.startsWith('Sold'));
+        const active = this.sampleProperties.filter(p => p.isActive);
+        return of({
+          success: true,
+          message: 'Loaded sales report',
+          data: {
+            totalProperties: this.sampleProperties.length,
+            totalActiveProperties: active.length,
+            totalSoldProperties: sold.length,
+            totalSoldValue: sold.reduce((acc, p) => acc + (p.priceRange || 0), 0),
+            totalActiveValue: active.reduce((acc, p) => acc + (p.priceRange || 0), 0),
+            soldProperties: sold
+          }
         });
       })
     );

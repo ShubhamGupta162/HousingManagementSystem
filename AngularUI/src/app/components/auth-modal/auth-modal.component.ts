@@ -158,6 +158,18 @@ import { State, City, UserSession } from '../../models/models';
               </div>
 
               <div class="form-group">
+                <label>Date of Birth (Must be 18+)</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  [max]="maxDobDate"
+                  [(ngModel)]="buyerDob"
+                  name="buyerDob"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
                 <label>Password</label>
                 <input
                   type="password"
@@ -223,6 +235,18 @@ import { State, City, UserSession } from '../../models/models';
                   placeholder="Min 6 characters"
                   [(ngModel)]="sellerPassword"
                   name="sellerPassword"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Date of Birth (Must be 18+)</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  [max]="maxDobDate"
+                  [(ngModel)]="sellerDob"
+                  name="sellerDob"
                   required
                 />
               </div>
@@ -489,15 +513,23 @@ export class AuthModalComponent {
   buyerEmail = '';
   buyerPhone = '';
   buyerPassword = '';
+  buyerDob = '';
 
   // Seller form
   sellerName = '';
   sellerEmail = '';
   sellerPhone = '';
   sellerPassword = '';
+  sellerDob = '';
   sellerAddress = '';
   sellerStateId: number | null = null;
   sellerCityId: number | null = null;
+
+  readonly maxDobDate: string = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
+  })();
 
   filteredSellerCities: City[] = [];
 
@@ -561,14 +593,39 @@ export class AuthModalComponent {
   }
 
   handleRegisterBuyer(): void {
+    if (!this.buyerDob) {
+      this.errorMessage.set('Date of birth is required.');
+      return;
+    }
+    const buyerBirth = new Date(this.buyerDob);
+    const today = new Date();
+    if (buyerBirth > today) {
+      this.errorMessage.set('Date of birth cannot be in the future.');
+      return;
+    }
+    const bAgeDiff = today.getFullYear() - buyerBirth.getFullYear();
+    const bMonthDiff = today.getMonth() - buyerBirth.getMonth();
+    const bDayDiff = today.getDate() - buyerBirth.getDate();
+    const buyerAge = (bMonthDiff < 0 || (bMonthDiff === 0 && bDayDiff < 0)) ? bAgeDiff - 1 : bAgeDiff;
+    if (buyerAge < 18) {
+      this.errorMessage.set('Buyer must be at least 18 years old to register.');
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(this.buyerPhone.trim())) {
+      this.errorMessage.set('Mobile number must be exactly 10 digits starting with 6, 7, 8, or 9.');
+      return;
+    }
+
     this.errorMessage.set(null);
     this.loading.set(true);
 
     this.authService.registerBuyer({
       fullName: this.buyerName,
       emailId: this.buyerEmail,
-      phoneNo: this.buyerPhone,
-      password: this.buyerPassword
+      password: this.buyerPassword,
+      dob: this.buyerDob,
+      mobileNo: this.buyerPhone
     }).subscribe({
       next: res => {
         this.loading.set(false);
@@ -587,6 +644,30 @@ export class AuthModalComponent {
   }
 
   handleRegisterSeller(): void {
+    if (!this.sellerDob) {
+      this.errorMessage.set('Date of birth is required for seller registration.');
+      return;
+    }
+    const sellerBirth = new Date(this.sellerDob);
+    const today = new Date();
+    if (sellerBirth > today) {
+      this.errorMessage.set('Date of birth cannot be in the future.');
+      return;
+    }
+    const sAgeDiff = today.getFullYear() - sellerBirth.getFullYear();
+    const sMonthDiff = today.getMonth() - sellerBirth.getMonth();
+    const sDayDiff = today.getDate() - sellerBirth.getDate();
+    const sellerAge = (sMonthDiff < 0 || (sMonthDiff === 0 && sDayDiff < 0)) ? sAgeDiff - 1 : sAgeDiff;
+    if (sellerAge < 18) {
+      this.errorMessage.set('Seller must be at least 18 years old to register.');
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(this.sellerPhone.trim())) {
+      this.errorMessage.set('Mobile number must be exactly 10 digits starting with 6, 7, 8, or 9.');
+      return;
+    }
+
     if (!this.sellerStateId || !this.sellerCityId) {
       this.errorMessage.set('Please select both State and City.');
       return;
@@ -602,7 +683,8 @@ export class AuthModalComponent {
       password: this.sellerPassword,
       address: this.sellerAddress,
       stateId: Number(this.sellerStateId),
-      cityId: Number(this.sellerCityId)
+      cityId: Number(this.sellerCityId),
+      dateofBirth: new Date(this.sellerDob).toISOString()
     }).subscribe({
       next: res => {
         this.loading.set(false);

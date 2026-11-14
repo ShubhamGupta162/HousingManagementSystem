@@ -1,12 +1,12 @@
 using EasyHousingSolution.PropertyService.Application.DTOs;
 using EasyHousingSolution.PropertyService.Application.Interfaces;
-using EasyHousingSolution.Shared.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyHousingSolution.PropertyService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class StatesController : ControllerBase
 {
     private readonly ILocationAppService _locationService;
@@ -17,22 +17,23 @@ public class StatesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<StateDto>>>> GetAllStates()
+    public async Task<IActionResult> GetAllStates()
     {
         var states = await _locationService.GetAllStatesAsync();
-        return Ok(ApiResponse<IEnumerable<StateDto>>.Ok(states));
+        return Ok(states);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<StateDto>>> CreateState([FromBody] StateDto dto)
+    public async Task<IActionResult> CreateState(StateDto dto)
     {
         var created = await _locationService.CreateStateAsync(dto);
-        return CreatedAtAction(nameof(GetAllStates), ApiResponse<StateDto>.Ok(created, "State created successfully."));
+        return CreatedAtAction(nameof(GetAllStates), created);
     }
 }
 
 [ApiController]
 [Route("api/[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class CitiesController : ControllerBase
 {
     private readonly ILocationAppService _locationService;
@@ -43,23 +44,23 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<CityDto>>>> GetAllCities()
+    public async Task<IActionResult> GetAllCities()
     {
         var cities = await _locationService.GetAllCitiesAsync();
-        return Ok(ApiResponse<IEnumerable<CityDto>>.Ok(cities));
+        return Ok(cities);
     }
 
     [HttpGet("by-state/{stateId:int}")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<CityDto>>>> GetCitiesByState(int stateId)
+    public async Task<IActionResult> GetCitiesByState(int stateId)
     {
         var cities = await _locationService.GetCitiesByStateIdAsync(stateId);
-        return Ok(ApiResponse<IEnumerable<CityDto>>.Ok(cities));
+        return Ok(cities);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<CityDto>>> CreateCity([FromBody] CityDto dto)
+    public async Task<IActionResult> CreateCity(CityDto dto)
     {
         var created = await _locationService.CreateCityAsync(dto);
-        return CreatedAtAction(nameof(GetAllCities), ApiResponse<CityDto>.Ok(created, "City created successfully."));
+        return CreatedAtAction(nameof(GetAllCities), created);
     }
 }

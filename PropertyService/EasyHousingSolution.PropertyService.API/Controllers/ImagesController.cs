@@ -1,6 +1,5 @@
 using EasyHousingSolution.PropertyService.Application.DTOs;
 using EasyHousingSolution.PropertyService.Application.Interfaces;
-using EasyHousingSolution.Shared.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +7,7 @@ namespace EasyHousingSolution.PropertyService.API.Controllers;
 
 [ApiController]
 [Route("api/properties/{propertyId:int}/[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class ImagesController : ControllerBase
 {
     private readonly IImageAppService _imageService;
@@ -18,19 +18,20 @@ public class ImagesController : ControllerBase
     }
 
     [HttpGet]
+    [Tags("Buyer")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyImageDto>>>> GetImages(int propertyId)
+    public async Task<IActionResult> GetImages(int propertyId)
     {
         var images = await _imageService.GetImagesByPropertyIdAsync(propertyId);
-        return Ok(ApiResponse<IEnumerable<PropertyImageDto>>.Ok(images));
+        return Ok(images);
     }
 
-    // Only Seller can upload images for a property
     [HttpPost]
+    [Tags("Seller")]
     [Authorize(Roles = "Seller")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<PropertyImageDto>>>> UploadImages(int propertyId, [FromBody] UploadImagesDto dto)
+    public async Task<IActionResult> UploadImages(int propertyId, UploadImagesDto dto)
     {
         var uploaded = await _imageService.UploadImagesAsync(propertyId, dto.Images);
-        return Ok(ApiResponse<IEnumerable<PropertyImageDto>>.Ok(uploaded, "Images uploaded successfully."));
+        return Ok(uploaded);
     }
 }

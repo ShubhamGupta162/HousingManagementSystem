@@ -70,17 +70,6 @@ import { City } from '../../models/models';
               </select>
               <span class="field-hint">Apartment, Villa, Plot...</span>
             </div>
-
-            <!-- Sort By Box -->
-            <div class="field-box">
-              <label class="field-label">BUDGET & SORT</label>
-              <select class="field-select" [(ngModel)]="selectedSort">
-                <option value="">Recommended</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-              </select>
-              <span class="field-hint">Sort properties by price</span>
-            </div>
           </div>
 
           <!-- Bottom Action Area -->
@@ -186,7 +175,7 @@ import { City } from '../../models/models';
     }
     .search-fields-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
       margin-bottom: 22px;
     }
@@ -270,25 +259,26 @@ import { City } from '../../models/models';
   `]
 })
 export class HeroSearchComponent {
-  readonly cities = input<City[]>([]);
-  readonly activeCityId = input<number | null>(null);
-  readonly activeOption = input<string>('Sell');
-  readonly activeType = input<string>('');
-  readonly activeSort = input<string>('');
+  // --- Inputs passed from Parent (app.ts) ---
+  readonly cities = input<City[]>([]);               // Dropdown list of cities
+  readonly activeCityId = input<number | null>(null); // Current selected city ID (if any)
+  readonly activeOption = input<string>('Sell');      // 'Sell' (Buy) or 'Rent'
+  readonly activeType = input<string>('');            // Selected property type
 
+  // --- Output: Emits when user clicks "SEARCH PROPERTIES" or switches BUY/RENT ---
   readonly searchTriggered = output<{
     cityId?: number;
     propertyType?: string;
     propertyOption?: string;
-    sortBy?: string;
   }>();
 
-  selectedOption = signal<'Sell' | 'Rent'>('Sell');
-  selectedCityId: number | null = null;
-  selectedType: string = '';
-  selectedSort: string = '';
+  // --- 3 Simple Search Filters ---
+  selectedOption = signal<'Sell' | 'Rent'>('Sell');  // Filter 1: Purpose (Buy vs Rent)
+  selectedCityId: number | null = null;              // Filter 2: City
+  selectedType: string = '';                         // Filter 3: Property Type (Apartment, Villa, Plot, Commercial)
 
   constructor() {
+    // Keep local form selections synchronized with parent state
     effect(() => {
       this.selectedCityId = this.activeCityId() ?? null;
       const opt = this.activeOption();
@@ -296,21 +286,21 @@ export class HeroSearchComponent {
         this.selectedOption.set(opt);
       }
       this.selectedType = this.activeType() || '';
-      this.selectedSort = this.activeSort() || '';
     });
   }
 
+  // Switches between BUY and RENT tabs and auto-triggers search
   setOption(opt: 'Sell' | 'Rent'): void {
     this.selectedOption.set(opt);
     this.onSearch();
   }
 
+  // Sends the 3 filter parameters to parent component (app.ts)
   onSearch(): void {
     this.searchTriggered.emit({
-      cityId: this.selectedCityId ? Number(this.selectedCityId) : undefined,
-      propertyType: this.selectedType || undefined,
       propertyOption: this.selectedOption(),
-      sortBy: this.selectedSort || undefined
+      cityId: this.selectedCityId ? Number(this.selectedCityId) : undefined,
+      propertyType: this.selectedType || undefined
     });
   }
 }

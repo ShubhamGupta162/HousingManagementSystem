@@ -1,7 +1,6 @@
 using System.Net;
-using System.Text.Json;
-using EasyHousingSolution.Shared.Common;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EasyHousingSolution.Shared.Middleware;
@@ -10,6 +9,11 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
+
+    public record ExceptionResponse(
+        HttpStatusCode StatusCode,
+        string Message,
+        string? Details = null);
 
     public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
     {
@@ -23,51 +27,44 @@ public class GlobalExceptionMiddleware
         {
             await _next(context);
         }
-        catch (KeyNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "Resource not found for request {Method} {Path}: {Message}", 
-                context.Request.Method, context.Request.Path, ex.Message);
-            await HandleExceptionAsync(context, HttpStatusCode.NotFound, ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Validation failure for request {Method} {Path}: {Message}", 
-                context.Request.Method, context.Request.Path, ex.Message);
-            await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Business rule constraint violated for request {Method} {Path}: {Message}", 
-                context.Request.Method, context.Request.Path, ex.Message);
-            await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            _logger.LogWarning(ex, "Unauthorized access attempt for request {Method} {Path}: {Message}", 
-                context.Request.Method, context.Request.Path, ex.Message);
-            await HandleExceptionAsync(context, HttpStatusCode.Unauthorized, "Unauthorized access.");
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled critical exception on request {Method} {Path}: {Message}", 
-                context.Request.Method, context.Request.Path, ex.Message);
-            await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, 
-                "An unexpected server error occurred. Please try again later.", new List<string> { ex.Message });
+            _logger.LogError(ex, "Exception caught by GlobalExceptionMiddleware: {Message}", ex.Message);
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string message, List<string>? errors = null)
+    public async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)statusCode;
-
-        var response = ApiResponse<object>.Fail(message, errors);
-        var jsonOptions = new JsonSerializerOptions
+        ExceptionResponse response = exception switch
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            ArgumentException argEx => 
+                new ExceptionResponse(HttpStatusCode.BadRequest, "Invalid Argument", argEx.Message),
+
+            InvalidOperationException opEx => 
+                new ExceptionResponse(HttpStatusCode.BadRequest, "Operation Not Allowed", opEx.Message),
+
+            BadHttpRequestException badReqEx => 
+                new ExceptionResponse(HttpStatusCode.BadRequest, "Malformed Request", badReqEx.Message),
+
+            KeyNotFoundException notFoundEx => 
+                new ExceptionResponse(HttpStatusCode.NotFound, "Not Found", notFoundEx.Message),
+
+            UnauthorizedAccessException _ => 
+                new ExceptionResponse(HttpStatusCode.Unauthorized, "Unauthorized", "Access denied. Authentication required."),
+
+            HttpRequestException _ => 
+                new ExceptionResponse(HttpStatusCode.BadGateway, "Service Communication Error", "Failed to communicate with downstream microservice."),
+
+            DbUpdateException _ => 
+                new ExceptionResponse(HttpStatusCode.Conflict, "Database Conflict", "Record already exists or violates a database unique constraint."),
+
+            _ => 
+                new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal Server Error", "An unexpected error occurred. Please try again later.")
         };
 
-        var json = JsonSerializer.Serialize(response, jsonOptions);
-        await context.Response.WriteAsync(json);
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)response.StatusCode;
+        await context.Response.WriteAsJsonAsync(response);
     }
 }

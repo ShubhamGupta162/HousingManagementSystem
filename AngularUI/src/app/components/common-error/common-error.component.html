@@ -1,0 +1,53 @@
+@if (errorService.hasError()) {
+  <div class="error-backdrop" (click)="onDismiss()">
+    <div class="error-modal" (click)="$event.stopPropagation()">
+      <div class="error-header">
+        <div class="error-icon-box">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="#e02a2a" stroke-width="2"/>
+            <line x1="12" y1="8" x2="12" y2="12" stroke="#e02a2a" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="1.25" fill="#e02a2a"/>
+          </svg>
+        </div>
+        <div class="error-title-wrap">
+          <div class="badge-row">
+            <span class="error-badge">System Notice</span>
+            @if (errorService.currentError()?.statusCode) {
+              <span class="status-badge">HTTP {{ errorService.currentError()?.statusCode }}</span>
+            }
+          </div>
+          <h3 class="error-title">{{ errorService.currentError()?.title }}</h3>
+        </div>
+        <button class="close-btn" (click)="onDismiss()" title="Close error dialog">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="error-body">
+        <p class="error-user-message">{{ errorService.currentError()?.message }}</p>
+
+        @if (errorService.currentError()?.technicalDetails) {
+          <div class="tech-details-section">
+            <button class="tech-toggle-btn" (click)="toggleDetails()">
+              <span>{{ showDetails() ? 'Hide' : 'View' }} Technical Diagnostics</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="showDetails()">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            @if (showDetails()) {
+              <pre class="tech-details-box">{{ errorService.currentError()?.technicalDetails }}</pre>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="error-footer">
+        <button class="btn btn-secondary" (click)="onDismiss()">Dismiss</button>
+        <button class="btn btn-primary" (click)="onReload()">Reload Page</button>
+      </div>
+    </div>
+  </div>
+}

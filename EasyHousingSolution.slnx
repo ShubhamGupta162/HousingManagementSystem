@@ -23,4 +23,10 @@
   <Folder Name="/Shared/">
     <Project Path="Shared/EasyHousingSolution.Shared/EasyHousingSolution.Shared.csproj" />
   </Folder>
+  <Folder Name="/UserService/">
+    <Project Path="UserService/EasyHousingSolution.UserService.API/EasyHousingSolution.UserService.API.csproj" />
+    <Project Path="UserService/EasyHousingSolution.UserService.Application/EasyHousingSolution.UserService.Application.csproj" />
+    <Project Path="UserService/EasyHousingSolution.UserService.Domain/EasyHousingSolution.UserService.Domain.csproj" />
+    <Project Path="UserService/EasyHousingSolution.UserService.Infrastructure/EasyHousingSolution.UserService.Infrastructure.csproj" />
+  </Folder>
 </Solution>
